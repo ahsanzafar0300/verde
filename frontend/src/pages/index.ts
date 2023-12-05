@@ -1,0 +1,6 @@
+export {default as PatientSignIn} from "./PatientSignIn"
+export {default as PatientSignUp} from "./PatientSignUp"
+export {default as DoctorSignIn} from "./DoctorSignIn"
+export {default as DoctorSignUp} from "./DoctorSignUp"
+export {default as DoctorDashboard} from "./DoctorDashboard"
+export {default as Page404} from "./Page404"
