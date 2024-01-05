@@ -1,8 +1,8 @@
-import _ from "lodash";
 import {
   DoctorsRepositoryInterface,
   CreateDoctor,
   GetUserTokenPayload,
+  UpdateDoctor,
 } from "../interfaces/DoctorsRepositoryInterface";
 
 class DoctorService {
@@ -13,16 +13,27 @@ class DoctorService {
   }
 
   async getAllDoctors() {
-    return this.doctors.findDoctors();
+    const doctors = this.doctors.findDoctors();
+    return doctors;
+  }
+
+  async findDoctorById(id: number) {
+    const doctor = this.doctors.findDoctorById(id);
+    return doctor;
+  }
+
+  async findDoctorsByIds(ids: number[]) {
+    const doctors = this.doctors.findDoctorsByIds(ids);
+    return doctors;
   }
 
   async findDoctorByEmail(email: string) {
-    const doctor = await this.doctors.findDoctorByEmail(email);
+    const doctor = this.doctors.findDoctorByEmail(email);
     return doctor;
   }
 
   async getDoctorToken(payload: GetUserTokenPayload) {
-    const token = await this.doctors.getDoctorToken({
+    const token = this.doctors.getDoctorToken({
       email: payload.email,
       password: payload.password,
     });
@@ -36,6 +47,25 @@ class DoctorService {
       console.error("Error creating doctor:", error);
       throw new Error("Failed to create doctor");
     }
+  }
+
+  async updateDoctor(id: number, data: UpdateDoctor) {
+    try {
+      return this.doctors.updateDoctor(id, data);
+    } catch (error) {
+      console.error("Error updating doctor:", error);
+      throw new Error("Failed to update doctor");
+    }
+  }
+
+  async getSpecializationDoctors(id: number) {
+    const doctors = this.doctors.getSpecializationDoctors(id);
+    return doctors;
+  }
+
+  async getHospitalDoctors(id: number) {
+    const doctors = this.doctors.getHospitalDoctors(id);
+    return doctors;
   }
 }
 

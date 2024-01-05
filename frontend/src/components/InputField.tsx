@@ -1,5 +1,10 @@
-export default function InputField({ input, onChange }: InputFieldProps) {
-  const { label, type, name, placeholder } = input;
+export default function InputField({
+  label,
+  type,
+  name,
+  placeholder,
+  onChange,
+}: InputFieldProps) {
   return (
     <div className="relative">
       <input
@@ -17,11 +22,9 @@ export default function InputField({ input, onChange }: InputFieldProps) {
 }
 
 interface InputFieldProps {
-  input: {
-    label: string;
-    type: string;
-    name: string;
-    placeholder?: string;
-  };
+  label?: string;
+  type?: string;
+  name?: string;
+  placeholder?: string;
   onChange: (e: React.SyntheticEvent) => void;
 }

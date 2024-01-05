@@ -1,51 +1,21 @@
 import _ from "lodash";
-import BaseRepository from "./baseRepository";
-import {
-  ModelStructure,
-  ModelTypes,
-  ModelScalarFields,
-  MODELS_NAME,
-} from "./prisma-repo";
-import { PrismaClient } from "@prisma/client";
 import { createHmac } from "node:crypto";
 import JWT from "jsonwebtoken";
 import {
   CreateDoctor,
   DoctorsRepositoryInterface,
   GetUserTokenPayload,
+  UpdateDoctor,
 } from "../interfaces/DoctorsRepositoryInterface";
+import { JWT_SECRET, SALT, prisma } from "..";
+import { Specialization } from "../interfaces/SpecializationRepositoryInterface";
+import { PrismaClient } from "@prisma/client";
+import { USER_ROLES } from "../utils/roles";
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
-type Where = ModelTypes[typeof MODELS_NAME.DOCTORS]["Where"];
-type Select = ModelTypes[typeof MODELS_NAME.DOCTORS]["Select"];
-type Include = ModelTypes[typeof MODELS_NAME.DOCTORS]["Include"];
-type Create = ModelTypes[typeof MODELS_NAME.DOCTORS]["Create"];
-type Update = ModelTypes[typeof MODELS_NAME.DOCTORS]["Update"];
-type Cursor = ModelTypes[typeof MODELS_NAME.DOCTORS]["Cursor"];
-type Order = ModelTypes[typeof MODELS_NAME.DOCTORS]["Order"];
-// type Delegate = ModelTypes[typeof MODELS_NAME.DOCTORS]["Delegate"];
-// type GroupBy = ModelTypes[typeof MODELS_NAME.DOCTORS]["GroupBy"];
-type Scalar = ModelScalarFields<typeof MODELS_NAME.DOCTORS>;
-type Model = ModelStructure[typeof MODELS_NAME.DOCTORS];
-/*  eslint-enable @typescript-eslint/no-unused-vars */
-
-const JWT_SECRET = process.env.JWT_SECRET!;
-
-const SALT = process.env.SALT!;
-
-class DoctorsRepository
-  extends BaseRepository(MODELS_NAME.DOCTORS)
-  implements DoctorsRepositoryInterface
-{
-  private prisma: PrismaClient;
-
-  constructor(prisma: PrismaClient) {
-    super();
-    this.prisma = prisma;
-  }
-
+class DoctorsRepository implements DoctorsRepositoryInterface {
   async findDoctors() {
-    return this.prisma.doctors.findMany({});
+    const doctors = prisma.doctors.findMany();
+    return doctors;
   }
 
   private async generateHash(salt: string, password: string) {
@@ -55,16 +25,33 @@ class DoctorsRepository
     return hashedPassword;
   }
 
-  async findDoctorByEmail(email: string) {
-    return this.prisma.doctors.findFirst({ where: { email } });
+  async findDoctorById(id: number) {
+    return prisma.doctors.findUnique({
+      where: { id },
+      include: { doctorHospitals: true },
+    });
   }
 
-  async createDoctor(data: CreateDoctor) {
-    const { password, ...other } = data;
-    const usersHashPassword = await this.generateHash(SALT, password);
-    const userData = { ...other, password: usersHashPassword };
-    return this.prisma.doctors.create({
-      data: userData,
+  async findDoctorByEmail(email: string) {
+    return prisma.doctors.findFirst({ where: { email } });
+  }
+
+  async findDoctorsByIds(ids: number[]) {
+    return prisma.doctors.findMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+    });
+  }
+
+  async updateDoctor(id: number, data: UpdateDoctor) {
+    return prisma.doctors.update({
+      where: {
+        id,
+      },
+      data: data,
     });
   }
 
@@ -79,10 +66,64 @@ class DoctorsRepository
       throw new Error("Incorrect Password");
 
     const token = JWT.sign(
-      { id: user.doctor_id, email: user.email },
-      JWT_SECRET
+      { id: user.id, email: user.email, role: "doctor" },
+      JWT_SECRET,
+      { expiresIn: "1h" }
     );
-    return token;
+    const returnValue = {
+      token: token,
+      email: email,
+      role: USER_ROLES.doctor,
+    };
+    return returnValue;
+  }
+
+  async createDoctor(data: CreateDoctor) {
+    const { password, ...other } = data;
+    const usersHashPassword = await this.generateHash(SALT, password);
+    const userData = { ...other, password: usersHashPassword };
+    return prisma.doctors.create({
+      data: userData,
+    });
+  }
+
+  async getSpecializationDoctors(id: number) {
+    const doctorsArr = prisma.doctorSpecialization.findMany({
+      where: { specialization_id: id },
+      select: {
+        doctor_id: true,
+      },
+    });
+    const doctorsIds = await doctorsArr;
+    const doctorsIdsArr = doctorsIds.map((item) => item.doctor_id);
+    const doctors = await prisma.doctors.findMany({
+      where: {
+        id: {
+          in: doctorsIdsArr,
+        },
+      },
+    });
+    return doctors;
+  }
+
+  async getHospitalDoctors(id: number) {
+    const doctorsArr = prisma.doctorHospitals.findMany({
+      where: { hospital_id: id },
+      select: {
+        doctor_id: true,
+      },
+    });
+    const doctorIds = await doctorsArr;
+    const doctorIdsArr = doctorIds.map((item) => item.doctor_id);
+    const doctors = await prisma.doctors.findMany({
+      where: {
+        id: {
+          in: doctorIdsArr,
+        },
+      },
+    });
+
+    return doctors;
   }
 }
 

@@ -1,15 +1,17 @@
 import image from "../assets/sign-in.png";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FacebookButton, GoogleButton, InputField } from "../components";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
-import toast, { Toaster } from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 import { googleSignIn, facebookSignIn } from "../firebase/utils.js";
 import { getRedirectResult } from "firebase/auth";
 import { auth } from "../firebase/config.js";
-
-const notifySuccess = () => toast.success("Login Success.");
-const notifyFailure = () => toast.error("Login Failed.");
+import { publicRequest } from "../api/requestMethods.js";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "../redux/store.js";
+import { setUser } from "../redux/slices/userSlice.js";
+import { USER_ROLES } from "../api/roles.js";
+import { notifyFailure, notifySuccess } from "../utils/Utils.js";
 
 const inputs = [
   {
@@ -28,7 +30,10 @@ const inputs = [
 
 const PATIENT_QUERY = `
 query PatientToken($email: String!, $password: String!) {
-  getPatientToken(email: $email, password: $password)
+  getPatientToken(email: $email, password: $password){
+    token,
+    email
+  }
 }
 `;
 
@@ -39,15 +44,17 @@ const initialValue = {
 
 export default function PatientSignIn() {
   const [inputValues, setInputValues] = useState<Inputs>(initialValue);
-  const [token, setToken] = useState<string>();
+  // const [token, setToken] = useState<string>();
   const navigate = useNavigate();
+  const user = useSelector((state: RootState) => state.user.currentUser);
+  const dispatch = useDispatch();
 
   const getPatientToken = async () => {
-    const response = await axios.post("/graphql", {
+    const response = await publicRequest.post("/graphql", {
       query: PATIENT_QUERY,
       variables: inputValues,
     });
-    return response.data.data;
+    return response.data.data.getPatientToken;
   };
 
   const handleChange = (e: any) => {
@@ -57,20 +64,19 @@ export default function PatientSignIn() {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     const tokenRes = await getPatientToken();
-    setToken(tokenRes.getPatientToken);
-  };
-
-  useEffect(() => {
-    if (token) {
-      notifySuccess();
+    console.log(tokenRes);
+    if (tokenRes?.token) {
+      const userData = { ...tokenRes, role: USER_ROLES.patient };
+      dispatch(setUser(userData));
+      notifySuccess("Login Success! Redirecting...");
       setInputValues(initialValue);
       setTimeout(() => {
-        navigate("/");
+        navigate("/patient-dashboard");
       }, 1000);
-    } else if (token === null) {
-      notifyFailure();
+    } else {
+      notifyFailure("Login Failed!");
     }
-  }, [token]);
+  };
 
   const handleGoogleSignIn = async () => {
     try {
@@ -101,6 +107,8 @@ export default function PatientSignIn() {
       }
     });
 
+  console.log(user);
+
   return (
     <main className="grid grid-cols-12 items-center">
       <section className="col-start-3 col-span-4">
@@ -108,7 +116,12 @@ export default function PatientSignIn() {
           <form onSubmit={handleSubmit}>
             <h3 className="text-4xl text-primary font-bold my-3">Log In</h3>
             {inputs?.map((input) => (
-              <InputField input={input} onChange={handleChange} />
+              <InputField
+                label={input.label}
+                name={input.name}
+                type={input.type}
+                onChange={handleChange}
+              />
             ))}
             <div className="flex items-start justify-around my-2">
               <div className="flex items-center">

@@ -2,14 +2,16 @@ import { patients } from "@prisma/client";
 import _ from "lodash";
 import PatientService from "../../services/PatientService";
 import PatientsRepository from "../../repository/patients";
-import { prisma } from "../../repository/prisma-repo";
 
-const patientRepo = new PatientsRepository(prisma);
+const patientRepo = new PatientsRepository();
 const patientService = new PatientService(patientRepo);
 
 const queries = {
   patients: () => {
     return patientService.getAllPatients();
+  },
+  findPatientById: async (_: void, { id }: { id: string }) => {
+    return patientService.findPatientById(parseInt(id));
   },
   findPatientByEmail: async (_: void, { email }: { email: string }) => {
     return patientService.findPatientByEmail(email);

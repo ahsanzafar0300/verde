@@ -1,4 +1,3 @@
-import _ from "lodash";
 import {
   PatientsRepositoryInterface,
   CreatePatient,
@@ -14,6 +13,11 @@ class PatientService {
 
   async getAllPatients() {
     return this.patients.findPatients();
+  }
+
+  async findPatientById(id: number) {
+    const patient = await this.patients.findPatientById(id);
+    return patient;
   }
 
   async findPatientByEmail(email: string) {

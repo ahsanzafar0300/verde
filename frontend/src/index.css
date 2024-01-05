@@ -35,6 +35,10 @@ input[type="number"] {
   @apply border-[#125DB9];
 }
 
+.text-selected {
+  @apply text-[#3FB946];
+}
+
 .form-btn {
   background: linear-gradient(180deg, #125db9 0%, #092f5d 100%);
   border-radius: 20px;

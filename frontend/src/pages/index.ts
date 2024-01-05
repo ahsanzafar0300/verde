@@ -1,6 +1,18 @@
-export {default as PatientSignIn} from "./PatientSignIn"
-export {default as PatientSignUp} from "./PatientSignUp"
-export {default as DoctorSignIn} from "./DoctorSignIn"
-export {default as DoctorSignUp} from "./DoctorSignUp"
-export {default as DoctorDashboard} from "./DoctorDashboard"
-export {default as Page404} from "./Page404"
+export { default as PatientSignIn } from "./PatientSignIn";
+export { default as PatientSignUp } from "./PatientSignUp";
+export { default as DoctorSignIn } from "./DoctorSignIn";
+export { default as DoctorSignUp } from "./DoctorSignUp";
+export { default as AdminSignUp } from "./AdminSignUp";
+export { default as AdminSignIn } from "./AdminSignIn";
+export { default as DoctorProfile } from "./doctorDashboard/DoctorProfile";
+export { default as PatientProfile } from "./patientDashboard/PatientProfile";
+export { default as AdminDashboardHome } from "./adminDashboard/AdminDashboardHome";
+export { default as AdminDoctors } from "./adminDashboard/doctors/AdminDoctors";
+export { default as AdminPatients } from "./adminDashboard/patients/AdminPatients";
+export { default as AdminHospitals } from "./adminDashboard/hospitals/AdminHospitals";
+export { default as AdminNewDoctor } from "./adminDashboard/doctors/AdminNewDoctor";
+export { default as AdminNewHospital } from "./adminDashboard/hospitals/AdminNewHospital";
+export { default as AdminDoctorProfile } from "./adminDashboard/doctors/AdminDoctorProfile/AdminDoctorProfile";
+export { default as AdminHospitalProfile } from "./adminDashboard/hospitals/AdminHospitalProfile";
+export { default as AdminPatientProfile } from "./adminDashboard/patients/AdminPatientProfile";
+export { default as Page404 } from "./Page404";

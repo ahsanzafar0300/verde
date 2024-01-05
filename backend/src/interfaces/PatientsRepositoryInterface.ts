@@ -5,16 +5,18 @@ export interface CreatePatient {
   password: string;
   phone_number: string;
   gender: string;
+  is_verified: boolean;
 }
 
 export interface Patient {
-  patient_id: number;
+  id: number;
   first_name: string;
   last_name: string;
   email: string;
   password: string;
   phone_number: string;
   gender: string;
+  is_verified: boolean;
 }
 
 export interface GetUserTokenPayload {
@@ -22,9 +24,18 @@ export interface GetUserTokenPayload {
   password: string;
 }
 
+export interface ReturnUserTokenPayload {
+  token: string;
+  email: string;
+  role: string;
+}
+
 export interface PatientsRepositoryInterface {
   findPatients(): Promise<Patient[]>;
   findPatientByEmail(email: string): Promise<Patient | null>;
+  findPatientById(id: number): Promise<Patient | null>;
   createPatient(data: CreatePatient): Promise<Patient>;
-  getPatientToken(payload: GetUserTokenPayload): Promise<string>;
+  getPatientToken(
+    payload: GetUserTokenPayload
+  ): Promise<ReturnUserTokenPayload>;
 }

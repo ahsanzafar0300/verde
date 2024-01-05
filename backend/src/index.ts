@@ -1,9 +1,16 @@
-import { prisma } from "./repository/prisma-repo.js";
+// import { prisma } from "./repository/prisma-repo";
 import { expressMiddleware } from "@apollo/server/express4";
 import express from "express";
 import cors from "cors";
-import { gqlServer } from "./graphql/index.js";
+import { gqlServer } from "./graphql";
+import { PrismaClient } from "@prisma/client";
 const port = process.env.PORT;
+
+export const prisma = new PrismaClient();
+
+export const JWT_SECRET = process.env.JWT_SECRET!;
+
+export const SALT = process.env.SALT!;
 
 export const init = async () => {
   const app = express();

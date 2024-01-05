@@ -1,12 +1,14 @@
 import image from "../assets/form-img.png";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { InputField } from "../components";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
-import toast, { Toaster } from "react-hot-toast";
-
-const notifySuccess = () => toast.success("Login Success.");
-const notifyFailure = () => toast.error("Login Failed.");
+import { Toaster } from "react-hot-toast";
+import { publicRequest } from "../api/requestMethods";
+import type { RootState } from "../redux/store";
+import { useSelector, useDispatch } from "react-redux";
+import { setUser } from "../redux/slices/userSlice";
+import { USER_ROLES } from "../api/roles";
+import { notifyFailure, notifySuccess } from "../utils/Utils";
 
 const inputs = [
   {
@@ -25,7 +27,10 @@ const inputs = [
 
 const DOCTOR_QUERY = `
 query DoctorToken($email: String!, $password: String!) {
-  getDoctorToken(email: $email, password: $password)
+  getDoctorToken(email: $email, password: $password){
+    token,
+    email
+  }
 }
 `;
 
@@ -36,15 +41,17 @@ const initialValue = {
 
 export default function DoctorSignIn() {
   const [inputValues, setInputValues] = useState<Inputs>(initialValue);
-  const [token, setToken] = useState();
+  // const [token, setToken] = useState();
   const navigate = useNavigate();
+  const user = useSelector((state: RootState) => state.user.currentUser);
+  const dispatch = useDispatch();
 
   const getDoctorToken = async () => {
-    const response = await axios.post("/graphql", {
+    const response = await publicRequest.post("/graphql", {
       query: DOCTOR_QUERY,
       variables: inputValues,
     });
-    return response.data.data;
+    return response.data.data.getDoctorToken;
   };
 
   const handleChange = (e: any) => {
@@ -54,20 +61,20 @@ export default function DoctorSignIn() {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     const tokenRes = await getDoctorToken();
-    setToken(tokenRes.getDoctorToken);
-  };
-
-  useEffect(() => {
-    if (token) {
-      notifySuccess();
+    if (tokenRes?.token) {
+      const userData = { ...tokenRes, role: USER_ROLES.doctor };
+      dispatch(setUser(userData));
+      notifySuccess("Login Success! Redirecting...");
       setInputValues(initialValue);
       setTimeout(() => {
-        navigate("/");
+        navigate("/doctor-dashboard");
       }, 1000);
-    } else if (token === null) {
-      notifyFailure();
+    } else {
+      notifyFailure("Login Failed!");
     }
-  }, [token]);
+  };
+
+  console.log(user);
 
   return (
     <main className="grid grid-cols-12 items-center my-12">
@@ -81,7 +88,12 @@ export default function DoctorSignIn() {
           </h3>
           <form onSubmit={handleSubmit} className="pt-2 pb-6 px-5">
             {inputs?.map((input) => (
-              <InputField input={input} onChange={handleChange} />
+              <InputField
+                label={input.label}
+                name={input.name}
+                type={input.type}
+                onChange={handleChange}
+              />
             ))}
             <div className="flex items-start justify-around my-2">
               <div className="flex items-center">

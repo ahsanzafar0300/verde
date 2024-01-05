@@ -2,13 +2,11 @@ import image from "../assets/sign-up.png";
 import { useState, useEffect } from "react";
 import { FacebookButton, GoogleButton, InputField } from "../components";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
 import { useMutation } from "react-query";
-import toast, { Toaster } from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 import { facebookSignIn, googleSignIn } from "../firebase/utils";
-
-const notifySuccess = () => toast.success("Sign Up Success.");
-const notifyFailure = () => toast.error("Sign Up Failure.");
+import { publicRequest } from "../api/requestMethods";
+import { notifyFailure, notifySuccess } from "../utils/Utils";
 
 const inputs = [
   {
@@ -60,21 +58,17 @@ export default function PatientSignUp() {
   mutation($data: PatientInput!) {
     createPatient(data: $data) {
       email
-      patient_id
-      first_name
     }
   }
 `;
 
   const getPatients = async (data: any) => {
-    return axios({
-      url: "/graphql",
-      method: "POST",
-      data: {
+    return publicRequest
+      .post("/graphql", {
         query: FILMS_QUERY,
         variables: { data },
-      },
-    }).then((response) => response.data.data);
+      })
+      .then((response) => response.data.data);
   };
   // const { data } = useQuery("patients", getPatients);
 
@@ -95,12 +89,12 @@ export default function PatientSignUp() {
   useEffect(() => {
     if (data) {
       if (isSuccess) {
-        notifySuccess();
+        notifySuccess("Sign Up Success.");
         setTimeout(() => {
           navigate("/patient/sign-in");
         }, 1000);
       } else {
-        notifyFailure();
+        notifyFailure("Sign Up Failure.");
       }
     }
   }, [data]);
@@ -158,7 +152,12 @@ export default function PatientSignUp() {
                       </div>
                     </div>
                   ) : (
-                    <InputField input={input} onChange={handleChange} />
+                    <InputField
+                      label={input.label}
+                      name={input.name}
+                      type={input.type}
+                      onChange={handleChange}
+                    />
                   )}
                 </div>
               ))}

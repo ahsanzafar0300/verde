@@ -1,9 +1,8 @@
 import DoctorsRepository from "../repository/doctors";
-import { prisma } from "../repository/prisma-repo";
 import DoctorService from "../services/DoctorService";
 import { doctors } from "@prisma/client";
 
-const doctorRepo = new DoctorsRepository(prisma);
+const doctorRepo = new DoctorsRepository();
 const doctorService = new DoctorService(doctorRepo);
 
 describe("DoctorService", () => {

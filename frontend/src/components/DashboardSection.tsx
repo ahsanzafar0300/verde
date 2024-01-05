@@ -8,6 +8,6 @@ export default function DashboardSection({ children, title }: SectionProps) {
 }
 
 interface SectionProps {
-  children: React.ReactElement;
+  children: React.ReactNode;
   title: string;
 }
