@@ -1,0 +1,101 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model doctors {
+  id                   Int                    @id @default(autoincrement())
+  first_name           String                 @db.VarChar(255)
+  last_name            String                 @db.VarChar(255)
+  email                String                 @unique @db.VarChar(255)
+  phone_number         String                 @db.VarChar(50)
+  gender               String                 @db.VarChar(50)
+  password             String                 @db.VarChar(255)
+  is_verified          Boolean                @default(false)
+  verification_code    String                 @db.VarChar(50) @default("")
+  appointments         appointments[]
+  doctorSpecialization doctorSpecialization[]
+  doctorHospitals      doctorHospitals[]
+}
+
+model patients {
+  id           Int            @id @default(autoincrement())
+  first_name   String         @db.VarChar(255)
+  last_name    String         @db.VarChar(255)
+  email        String         @unique @db.VarChar(255)
+  phone_number String         @db.VarChar(50)
+  gender       String         @db.VarChar(50)
+  password     String         @db.VarChar(255)
+  is_verified  Boolean        @default(false)
+  verification_code    String                 @db.VarChar(50) @default("")
+  appointments appointments[]
+}
+
+model admin {
+  id           Int    @id @default(autoincrement())
+  first_name   String @db.VarChar(255)
+  last_name    String @db.VarChar(255)
+  email        String @unique @db.VarChar(255)
+  phone_number String @db.VarChar(50)
+  password     String @db.VarChar(255)
+  verification_code    String                 @db.VarChar(50) @default("")
+}
+
+model appointments {
+  id               Int      @id @default(autoincrement())
+  appointment_date DateTime @db.Date
+  appointment_type String   @db.VarChar(255)
+  appointment_time DateTime @db.Time(0)
+  patient          patients @relation(fields: [patient_id], references: [id])
+  patient_id       Int
+  doctor           doctors  @relation(fields: [doctor_id], references: [id])
+  doctor_id        Int
+  payment          payments @relation(fields: [payment_id], references: [id])
+  payment_id       Int
+}
+
+model payments {
+  id           Int            @id @default(autoincrement())
+  amount       Float
+  payment_date DateTime       @default(now())
+  is_paid      Boolean
+  appointments appointments[]
+}
+
+model hospitals {
+  id              Int               @id @default(autoincrement())
+  name            String            @db.VarChar(255)
+  location        String            @db.VarChar(255)
+  phone_number    String            @db.VarChar(255)
+  doctorHospitals doctorHospitals[]
+}
+
+model specialization {
+  id                   Int                    @id @default(autoincrement())
+  title                String                 @db.VarChar(255)
+  description          String                 @db.VarChar(255)
+  doctorSpecialization doctorSpecialization[]
+}
+
+model doctorSpecialization {
+  id                Int            @id @default(autoincrement())
+  doctor            doctors        @relation(fields: [doctor_id], references: [id])
+  doctor_id         Int
+  specialization    specialization @relation(fields: [specialization_id], references: [id])
+  specialization_id Int
+}
+
+model doctorHospitals {
+  id          Int       @id @default(autoincrement())
+  doctor      doctors   @relation(fields: [doctor_id], references: [id])
+  doctor_id   Int
+  hospital    hospitals @relation(fields: [hospital_id], references: [id])
+  hospital_id Int
+}
