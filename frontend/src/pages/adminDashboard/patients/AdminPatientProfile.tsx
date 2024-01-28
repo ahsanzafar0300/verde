@@ -1,11 +1,11 @@
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { DashboardSection } from "../../../components";
 import { publicRequest } from "../../../api/requestMethods";
 import { useQuery } from "react-query";
 
 export default function AdminPatientProfile() {
   const { id } = useParams();
-  console.log(typeof id);
+  const navigate = useNavigate();
 
   const PATIENT_QUERY = `
     query($id:String!) {
@@ -34,6 +34,24 @@ export default function AdminPatientProfile() {
     queryKey: ["adminPatients", id],
     queryFn: getPatient,
   });
+
+  if (!patientData?.data) {
+    return (
+      <DashboardSection title="">
+        <div className="h-48 flex flex-col justify-center items-center gap-2">
+          <h2 className="text-2xl font-medium">No Patient Found!</h2>
+          <div className="w-48">
+            <button
+              className="form-btn"
+              onClick={() => navigate("/admin-dashboard/patients")}
+            >
+              Go to patients
+            </button>
+          </div>
+        </div>
+      </DashboardSection>
+    );
+  }
 
   return (
     <DashboardSection

@@ -1,5 +1,4 @@
 import _ from "lodash";
-import { createHmac } from "node:crypto";
 import JWT from "jsonwebtoken";
 import {
   CreatePatient,
@@ -33,17 +32,24 @@ class PatientsRepository
 
   async createPatient(data: CreatePatient) {
     try {
-      const { password, ...other } = data;
+      const { password, email, ...other } = data;
+      const user = await this.findPatientByEmail(email);
+      if (user) {
+        return {
+          error: "Email already exists!",
+        };
+      }
       const usersHashPassword = await super.generateHash(SALT, password);
-      const userData = { ...other, password: usersHashPassword };
+      const userData = { ...other, email, password: usersHashPassword };
       const createdPatient = await prisma.patients.create({
         data: userData,
       });
       await super.sendEmailOnSignUp(userData?.email);
       return createdPatient;
     } catch (error) {
-      console.error("Error creating patient:", error);
-      throw error;
+      return {
+        error: "Patient could not be created!",
+      };
     }
   }
 
@@ -69,13 +75,17 @@ class PatientsRepository
   async getPatientToken(payload: GetUserTokenPayload) {
     const { email, password } = payload;
     const user = await this.findPatientByEmail(email);
-    if (!user) throw new Error("user not found");
-
+    if (!user) {
+      return {
+        error: "Email does not exist!",
+      };
+    }
     const usersHashPassword = await super.generateHash(SALT, password);
-
-    if (usersHashPassword !== user.password)
-      throw new Error("Incorrect Password");
-
+    if (usersHashPassword !== user.password) {
+      return {
+        error: "Incorrect password!",
+      };
+    }
     const token = JWT.sign({ id: user.id, email: user.email }, JWT_SECRET, {
       expiresIn: "1h",
     });
@@ -99,6 +109,27 @@ class PatientsRepository
   async verifyPatientCode(code: string, id: number) {
     const patient = await this.findPatientById(id);
     if (code === patient?.verification_code) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  async patientOTP(email: string) {
+    const code = generateVerificationCode();
+    const emailPromise = await super.sendEmailOTP(email, code);
+    if (emailPromise) {
+      const hashCode = await super.generateHash(SALT, code);
+      return {
+        code: hashCode,
+      };
+    }
+    return null;
+  }
+
+  async verifyPatientOTP(code: string, hashCode: string) {
+    const inputCode = await super.generateHash(SALT, code);
+    if (inputCode === hashCode) {
       return true;
     } else {
       return false;

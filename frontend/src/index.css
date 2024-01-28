@@ -58,3 +58,16 @@ input[type="number"] {
   background: linear-gradient(180deg, #314dd8 0%, #19276c 137.2%),
     linear-gradient(0deg, #eeeeee, #eeeeee);
 }
+
+.react-international-phone-input-container .react-international-phone-input {
+  border: none !important;
+  color: #125db9;
+}
+
+.react-international-phone-country-selector-button {
+  border: none !important;
+}
+
+.react-international-phone-country-selector-dropdown {
+  z-index: 10;
+}

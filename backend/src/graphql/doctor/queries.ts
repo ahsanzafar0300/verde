@@ -8,4 +8,6 @@ export const queries = `#graphql
       getHospitalDoctors(id:String!):[Doctor]
       doctorForgotPassword(email: String, id: ID): Doctor
       verifyDoctorCode(code: String, id: ID):Boolean
+      doctorOTP(email: String): DoctorOTP
+      verifyDoctorOTP(code: String, hashCode: String):Boolean
 `;

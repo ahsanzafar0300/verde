@@ -13,6 +13,11 @@ export const typeDefs = `#graphql
     type PatientReturn{
         token:String
         email:String
+        error:String
+    }
+    type PatientSignupReturn{
+        email:String
+        error:String
     }
     input PatientInput {
         first_name: String!
@@ -31,5 +36,8 @@ export const typeDefs = `#graphql
         password: String
         is_verified: Boolean
         verification_code:String
+    }
+    type PatientOTP{
+        code:String
     }
 `;

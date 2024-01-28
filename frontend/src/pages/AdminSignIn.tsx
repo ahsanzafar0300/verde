@@ -4,25 +4,27 @@ import { InputField } from "../components";
 import { Link, useNavigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { publicRequest } from "../api/requestMethods";
-import type { RootState } from "../redux/store";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import { setUser } from "../redux/slices/userSlice";
 import { USER_ROLES } from "../api/roles";
 import { notifyFailure, notifySuccess } from "../utils/Utils";
 import { users } from "./forgotPassword/queriesAndUtils";
+import { loadingEnd, loadingStart } from "../redux/slices/loadingSlice";
 
-const inputs = [
+const inputsArr = [
   {
     label: "Email",
     type: "email",
     placeholder: "Enter your email",
     name: "email",
+    error: false,
   },
   {
     label: "Password",
     type: "password",
     placeholder: "************",
     name: "password",
+    error: false,
   },
 ];
 
@@ -30,7 +32,8 @@ const ADMIN_QUERY = `
 query AdminToken($email: String!, $password: String!) {
   getAdminToken(email: $email, password: $password){
     token,
-    email
+    email,
+    error
   }
 }
 `;
@@ -41,10 +44,9 @@ const initialValue = {
 };
 
 export default function AdminSignIn() {
+  const [inputs, setInputs] = useState(inputsArr);
   const [inputValues, setInputValues] = useState<Inputs>(initialValue);
-  // const [token, setToken] = useState();
   const navigate = useNavigate();
-  const user = useSelector((state: RootState) => state.user.currentUser);
   const dispatch = useDispatch();
 
   const getAdminToken = async () => {
@@ -55,8 +57,41 @@ export default function AdminSignIn() {
     return response.data.data.getAdminToken;
   };
 
+  const setFieldError = (fieldName?: string) => {
+    let updatedInputs;
+    if (fieldName) {
+      updatedInputs = inputs.map((input) => ({
+        ...input,
+        error: input.name === fieldName,
+      }));
+    } else {
+      updatedInputs = inputs.map((input) => ({
+        ...input,
+        error: inputValues[input.name] === "",
+      }));
+    }
+    setInputs(updatedInputs);
+  };
+
   const handleChange = (e: any) => {
     setInputValues((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleLogin = async () => {
+    dispatch(loadingStart());
+    const tokenRes = await getAdminToken();
+    dispatch(loadingEnd());
+    if (tokenRes?.token) {
+      const userData = { ...tokenRes, role: USER_ROLES.admin };
+      dispatch(setUser(userData));
+      notifySuccess("Login Success! Redirecting...");
+      setInputValues(initialValue);
+      setTimeout(() => {
+        navigate("/admin-dashboard");
+      }, 1000);
+    } else {
+      notifyFailure(tokenRes?.error || "Login Failed!");
+    }
   };
 
   const handleSubmit = async (e: any) => {
@@ -71,22 +106,10 @@ export default function AdminSignIn() {
     } else if (inputValues?.password?.length === 0) {
       notifyFailure("Please enter your password!");
     } else {
-      const tokenRes = await getAdminToken();
-      if (tokenRes?.token) {
-        const userData = { ...tokenRes, role: USER_ROLES.admin };
-        dispatch(setUser(userData));
-        notifySuccess("Login Success! Redirecting...");
-        setInputValues(initialValue);
-        setTimeout(() => {
-          navigate("/admin-dashboard");
-        }, 1000);
-      } else {
-        notifyFailure("Login Failed!");
-      }
+      handleLogin();
     }
+    setFieldError();
   };
-
-  console.log(user);
 
   return (
     <main className="grid grid-cols-12 items-center my-12">
@@ -106,16 +129,21 @@ export default function AdminSignIn() {
                 type={input.type}
                 placeholder={input.placeholder}
                 onChange={handleChange}
+                error={input.error}
               />
             ))}
             <div className="flex items-start justify-around my-2">
               <div className="flex items-center">
                 <input
+                  id="loggedIn"
                   type="checkbox"
                   value=""
                   className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                 />
-                <label className="ms-1 text-sm font-medium text-primary">
+                <label
+                  htmlFor="loggedIn"
+                  className="ms-1 text-sm font-medium text-primary"
+                >
                   Keep me logged in
                 </label>
               </div>
@@ -128,12 +156,12 @@ export default function AdminSignIn() {
               </Link>
             </div>
             <button className="form-btn my-3">Log In</button>
-            <small className="block my-1 text-primary text-center">
+            {/* <small className="block my-1 text-primary text-center">
               Do not have an account?{" "}
               <Link to="/admin/sign-up" className="font-bold">
                 Sign Up
               </Link>
-            </small>
+            </small> */}
           </form>
         </div>
       </section>
@@ -143,6 +171,7 @@ export default function AdminSignIn() {
 }
 
 interface Inputs {
-  email: String;
-  password: String;
+  [key: string]: string | string[] | boolean;
+  email: string;
+  password: string;
 }

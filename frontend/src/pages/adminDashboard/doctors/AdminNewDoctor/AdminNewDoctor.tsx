@@ -86,7 +86,6 @@ export default function AdminNewDoctor() {
   };
 
   const handleSubmit = (e: any) => {
-    console.log(inputValues);
     e.preventDefault();
     if (
       Object.keys(inputValues)?.length === inputs?.length &&

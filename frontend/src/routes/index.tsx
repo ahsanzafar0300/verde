@@ -15,13 +15,13 @@ import {
   AdminPatientProfile,
   AdminPatients,
   AdminSignIn,
-  AdminSignUp,
   DoctorProfile,
   DoctorSignIn,
   DoctorSignUp,
   ForgotPasswordCode,
   ForgotPasswordEmail,
   ForgotPasswordReset,
+  Homepage,
   Page404,
   PatientProfile,
   PatientSignIn,
@@ -57,12 +57,12 @@ export const router = createBrowserRouter(
     <>
       <Route element={<AppLayout />}>
         <Route element={<PublicRoutes />}>
+          <Route index element={<Homepage />} />
           <Route path="patient/sign-in" element={<PatientSignIn />} />
           <Route path="patient/sign-up" element={<PatientSignUp />} />
           <Route path="doctor/sign-in" element={<DoctorSignIn />} />
           <Route path="doctor/sign-up" element={<DoctorSignUp />} />
           <Route path="admin/sign-in" element={<AdminSignIn />} />
-          <Route path="admin/sign-up" element={<AdminSignUp />} />
           <Route path="forgot-password">
             <Route path="1" element={<ForgotPasswordEmail />} />
             <Route path="2" element={<ForgotPasswordCode />} />

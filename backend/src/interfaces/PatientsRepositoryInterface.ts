@@ -42,16 +42,22 @@ export interface ReturnUserTokenPayload {
   role: string;
 }
 
+export interface ReturnError {
+  error: string;
+}
+
 export interface PatientsRepositoryInterface {
   findPatients(): Promise<Patient[]>;
   findPatientByEmail(email: string): Promise<Patient | null>;
   findPatientById(id: number): Promise<Patient | null>;
-  createPatient(data: CreatePatient): Promise<Patient>;
+  createPatient(data: CreatePatient): Promise<Patient | ReturnError>;
   updatePatient(id: number, data: UpdatePatient): Promise<Patient>;
   updatePatientPassword(id: number, password: string): Promise<Patient>;
   getPatientToken(
     payload: GetUserTokenPayload
-  ): Promise<ReturnUserTokenPayload>;
+  ): Promise<ReturnUserTokenPayload | ReturnError>;
   patientForgotPassword(email: string, id: number): Promise<Patient | null>;
   verifyPatientCode(code: string, id: number): Promise<Boolean>;
+  patientOTP(email: string): Promise<{ code: string } | null>;
+  verifyPatientOTP(code: string, hashCode: string): Promise<Boolean>;
 }

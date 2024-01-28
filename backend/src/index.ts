@@ -26,7 +26,7 @@ export const init = async () => {
   app.use("/graphql", expressMiddleware(createGqlServer));
 
   app.listen(port, () => {
-    console.log(`Running a server at http://localhost:${port}`);
+    console.log(`Running the server`);
   });
 
   prisma.$connect();

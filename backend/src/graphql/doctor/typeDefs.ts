@@ -20,6 +20,7 @@ export const typeDefs = `#graphql
     type DoctorReturn{
         token:String
         email:String
+        error:String
     }
     input DoctorInput {
         first_name: String!
@@ -38,5 +39,8 @@ export const typeDefs = `#graphql
         password: String
         is_verified: Boolean
         verification_code:String
+    }
+    type DoctorOTP{
+        code:String
     }
 `;

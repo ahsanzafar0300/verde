@@ -1,31 +1,31 @@
 import image from "../assets/sign-in.png";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FacebookButton, GoogleButton, InputField } from "../components";
 import { Link, useNavigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { googleSignIn, facebookSignIn } from "../firebase/utils.js";
-import { getRedirectResult } from "firebase/auth";
-import { auth } from "../firebase/config.js";
 import { publicRequest } from "../api/requestMethods.js";
-import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "../redux/store.js";
+import { useDispatch } from "react-redux";
 import { setUser } from "../redux/slices/userSlice.js";
 import { USER_ROLES } from "../api/roles.js";
 import { notifyFailure, notifySuccess } from "../utils/Utils.js";
 import { users } from "./forgotPassword/queriesAndUtils.js";
+import { loadingEnd, loadingStart } from "../redux/slices/loadingSlice.js";
 
-const inputs = [
+const inputsArr = [
   {
     label: "Email",
     type: "email",
     placeholder: "Enter your email",
     name: "email",
+    error: false,
   },
   {
     label: "Password",
     type: "password",
     placeholder: "************",
     name: "password",
+    error: false,
   },
 ];
 
@@ -33,7 +33,8 @@ const PATIENT_QUERY = `
 query PatientToken($email: String!, $password: String!) {
   getPatientToken(email: $email, password: $password){
     token,
-    email
+    email,
+    error
   }
 }
 `;
@@ -44,10 +45,10 @@ const initialValue = {
 };
 
 export default function PatientSignIn() {
+  const [inputs, setInputs] = useState(inputsArr);
   const [inputValues, setInputValues] = useState<Inputs>(initialValue);
-  // const [token, setToken] = useState<string>();
+  const [socialLogin, setSocialLogin] = useState(false);
   const navigate = useNavigate();
-  const user = useSelector((state: RootState) => state.user.currentUser);
   const dispatch = useDispatch();
 
   const getPatientToken = async () => {
@@ -58,8 +59,42 @@ export default function PatientSignIn() {
     return response.data.data.getPatientToken;
   };
 
+  const setFieldError = (fieldName?: string) => {
+    let updatedInputs;
+    if (fieldName) {
+      updatedInputs = inputs.map((input) => ({
+        ...input,
+        error: input.name === fieldName,
+      }));
+    } else {
+      updatedInputs = inputs.map((input) => ({
+        ...input,
+        error: inputValues[input.name] === "",
+      }));
+    }
+    setInputs(updatedInputs);
+  };
+
   const handleChange = (e: any) => {
     setInputValues((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleLogin = async () => {
+    dispatch(loadingStart());
+    const tokenRes = await getPatientToken();
+    dispatch(loadingEnd());
+    if (tokenRes?.token) {
+      const userData = { ...tokenRes, role: USER_ROLES.patient };
+      dispatch(setUser(userData));
+      notifySuccess("Login Success! Redirecting...");
+      setInputValues(initialValue);
+      setTimeout(() => {
+        navigate("/patient-dashboard");
+      }, 1000);
+    } else {
+      notifyFailure(`${tokenRes?.error}`);
+    }
+    setSocialLogin(false);
   };
 
   const handleSubmit = async (e: any) => {
@@ -74,51 +109,44 @@ export default function PatientSignIn() {
     } else if (inputValues?.password?.length === 0) {
       notifyFailure("Please enter your password!");
     } else {
-      const tokenRes = await getPatientToken();
-      if (tokenRes?.token) {
-        const userData = { ...tokenRes, role: USER_ROLES.patient };
-        dispatch(setUser(userData));
-        notifySuccess("Login Success! Redirecting...");
-        setInputValues(initialValue);
-        setTimeout(() => {
-          navigate("/patient-dashboard");
-        }, 1000);
-      } else {
-        notifyFailure("Login Failed!");
-      }
+      handleLogin();
+    }
+    setFieldError();
+  };
+
+  const handleUser = (userData: any) => {
+    if (userData?.accessToken) {
+      const user = { email: userData?.email, password: userData?.uid };
+      setInputValues(user);
+      setSocialLogin(true);
+    } else {
+      notifyFailure("Login Failed!");
     }
   };
 
   const handleGoogleSignIn = async () => {
     try {
-      // setOpen(true);
-      await googleSignIn();
+      const userData = await googleSignIn();
+      handleUser(userData);
     } catch (err) {
-      console.log(err);
+      notifyFailure("Google Sign in Error!");
     }
   };
 
   const handleFacebookSignIn = async () => {
     try {
-      // setOpen(true);
-      await facebookSignIn();
+      const userData = await facebookSignIn();
+      handleUser(userData);
     } catch (err) {
-      console.log(err);
+      notifyFailure("Facebook Sign in Error!");
     }
   };
 
-  getRedirectResult(auth)
-    .then((result: any) => {
-      const userData = result?.user;
-      return userData;
-    })
-    .then((userData) => {
-      if (userData) {
-        console.log(userData);
-      }
-    });
-
-  console.log(user);
+  useEffect(() => {
+    if (socialLogin) {
+      handleLogin();
+    }
+  }, [socialLogin]);
 
   return (
     <main className="grid grid-cols-12 items-center">
@@ -133,16 +161,21 @@ export default function PatientSignIn() {
                 type={input.type}
                 placeholder={input.placeholder}
                 onChange={handleChange}
+                error={input.error}
               />
             ))}
             <div className="flex items-start justify-around my-2">
               <div className="flex items-center">
                 <input
+                  id="loggedIn"
                   type="checkbox"
                   value=""
                   className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                 />
-                <label className="ms-1 text-sm font-medium text-primary">
+                <label
+                  htmlFor="loggedIn"
+                  className="ms-1 text-sm font-medium text-primary"
+                >
                   Keep me logged in
                 </label>
               </div>
@@ -161,8 +194,14 @@ export default function PatientSignIn() {
             <small>Or</small>
             <div className="w-[45%] h-[1px] bg-[#E0E0E0]"></div>
           </div>
-          <GoogleButton onClick={handleGoogleSignIn} />
-          <FacebookButton onClick={handleFacebookSignIn} />
+          <GoogleButton
+            label="Sign in with Google"
+            onClick={handleGoogleSignIn}
+          />
+          <FacebookButton
+            label="Sign in with Facebook"
+            onClick={handleFacebookSignIn}
+          />
           <small className="block my-1 text-primary text-center">
             Do not have an account?{" "}
             <Link to="/patient/sign-up" className="font-bold">
@@ -180,6 +219,7 @@ export default function PatientSignIn() {
 }
 
 interface Inputs {
-  email: String;
-  password: String;
+  [key: string]: string | string[] | boolean;
+  email: string;
+  password: string;
 }

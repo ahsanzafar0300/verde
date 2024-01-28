@@ -14,17 +14,21 @@ export default function CheckboxInput({
         ""
       )}
       <div className=" mt-2">
-        {options?.map((option) => (
+        {options?.map((option, i) => (
           <div className="flex items-center my-2">
             <input
               type="checkbox"
               value={option.value}
               checked={option?.checked}
               name={name}
+              id={name + i}
               onChange={onChange}
               className="w-3 h-3 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
             />
-            <label className="ms-2 text-xs font-medium text-primary">
+            <label
+              htmlFor={name + i}
+              className="ms-2 text-xs font-medium text-primary"
+            >
               {option.label}
             </label>
           </div>

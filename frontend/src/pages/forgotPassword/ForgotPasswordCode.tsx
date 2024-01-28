@@ -4,11 +4,14 @@ import { useEffect, useState } from "react";
 import { verifyCode } from "./queriesAndUtils";
 import { notifyFailure, notifySuccess } from "../../utils/Utils";
 import { Toaster } from "react-hot-toast";
+import { loadingEnd, loadingStart } from "../../redux/slices/loadingSlice";
+import { useDispatch } from "react-redux";
 
 const ForgotPasswordCode = () => {
   const [code, setCode] = useState("");
   const { state } = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   useEffect(() => {
     if (!state?.for) {
@@ -22,7 +25,9 @@ const ForgotPasswordCode = () => {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
+    dispatch(loadingStart());
     const res = await verifyCode(code, state?.id, state?.for);
+    dispatch(loadingEnd());
     if (res) {
       notifySuccess("Code Verified!");
       setTimeout(() => {

@@ -1,4 +1,5 @@
 import toast from "react-hot-toast";
+import { PhoneNumberUtil } from "google-libphonenumber";
 
 export const notifySuccess = (msg: string) => toast.success(msg);
 export const notifyFailure = (msg: string) => toast.error(msg);
@@ -17,37 +18,31 @@ export const convertToDisplayName = (input: string) => {
 };
 
 export const isValidPassword = (password: string) => {
-  // Check length: 8-12 characters
-  if (password.length < 8 || password.length > 12) {
-    const msg = "Password length should be between 8-12 characters!";
+  if (password.length <= 8) {
+    const msg = "Password length should be greater than 8 characters!";
     return { status: false, msg };
   }
 
-  // Check for at least 1 uppercase letter
   if (!/[A-Z]/.test(password)) {
     const msg = "There should be atleast 1 uppercase letter in your password!";
     return { status: false, msg };
   }
 
-  // Check for at least 1 lowercase letter
   if (!/[a-z]/.test(password)) {
     const msg = "There should be atleast 1 lowercase letter in your password!";
     return { status: false, msg };
   }
 
-  // Check for at least 1 numeric character
   if (!/\d/.test(password)) {
     const msg = "There should be atleast 1 numeric character in your password!";
     return { status: false, msg };
   }
 
-  // Check for at least 1 special character
   if (!/[^A-Za-z0-9]/.test(password)) {
     const msg = "There should be atleast 1 special character in your password!";
     return { status: false, msg };
   }
 
-  // Check for palindrome
   if (isPalindrome(password)) {
     const msg = "Password cannot be a palindrome!";
     return { status: false, msg };
@@ -64,4 +59,14 @@ export const isPalindrome = (str: string) => {
 export type PasswordCheckType = {
   status: boolean;
   msg: string;
+};
+
+const phoneUtil = PhoneNumberUtil.getInstance();
+
+export const isPhoneValid = (phone: string) => {
+  try {
+    return phoneUtil.isValidNumber(phoneUtil.parseAndKeepRawInput(phone));
+  } catch (error) {
+    return false;
+  }
 };

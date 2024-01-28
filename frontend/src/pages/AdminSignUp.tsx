@@ -129,9 +129,9 @@ export default function AdminSignUp() {
             <div className="mb-5">
               <small className="text-primary">
                 <span className="font-bold">Note:</span>&nbsp;Password must be
-                8-12 characters, with at least 1 uppercase letter, 1 lowercase
-                letter, 1 numeric character, and 1 special character. Avoid
-                using palindromes.
+                greater than 8 characters, with at least 1 uppercase letter, 1
+                lowercase letter, 1 numeric character, and 1 special character.
+                Avoid using palindromes.
               </small>
             </div>
             <div className="flex items-start justify-start my-2">

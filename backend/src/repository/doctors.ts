@@ -59,13 +59,17 @@ class DoctorsRepository
   async getDoctorToken(payload: GetUserTokenPayload) {
     const { email, password } = payload;
     const user = await this.findDoctorByEmail(email);
-    if (!user) throw new Error("user not found");
-
+    if (!user) {
+      return {
+        error: "Email does not exist!",
+      };
+    }
     const usersHashPassword = await super.generateHash(SALT, password);
-
-    if (usersHashPassword !== user.password)
-      throw new Error("Incorrect Password");
-
+    if (usersHashPassword !== user.password) {
+      return {
+        error: "Incorrect password!",
+      };
+    }
     const token = JWT.sign(
       { id: user.id, email: user.email, role: "doctor" },
       JWT_SECRET,
@@ -81,17 +85,24 @@ class DoctorsRepository
 
   async createDoctor(data: CreateDoctor) {
     try {
-      const { password, ...other } = data;
+      const { password, email, ...other } = data;
+      const user = await this.findDoctorByEmail(email);
+      if (user) {
+        return {
+          error: "Email already exists!",
+        };
+      }
       const usersHashPassword = await super.generateHash(SALT, password);
-      const userData = { ...other, password: usersHashPassword };
+      const userData = { ...other, email, password: usersHashPassword };
       const createdDoctor = await prisma.doctors.create({
         data: userData,
       });
       await super.sendEmailOnSignUp(userData?.email);
       return createdDoctor;
     } catch (error) {
-      console.error("Error creating doctor:", error);
-      throw error;
+      return {
+        error: "Doctor could not be created!",
+      };
     }
   }
 
@@ -160,6 +171,27 @@ class DoctorsRepository
       },
       data: { password: hashPassword },
     });
+  }
+
+  async doctorOTP(email: string) {
+    const code = generateVerificationCode();
+    const emailPromise = await super.sendEmailOTP(email, code);
+    if (emailPromise) {
+      const hashCode = await super.generateHash(SALT, code);
+      return {
+        code: hashCode,
+      };
+    }
+    return null;
+  }
+
+  async verifyDoctorOTP(code: string, hashCode: string) {
+    const inputCode = await super.generateHash(SALT, code);
+    if (inputCode === hashCode) {
+      return true;
+    } else {
+      return false;
+    }
   }
 }
 

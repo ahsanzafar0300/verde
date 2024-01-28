@@ -2,18 +2,20 @@ import { auth } from "./config";
 import {
   GoogleAuthProvider,
   FacebookAuthProvider,
-  signInWithRedirect,
+  signInWithPopup,
   signOut,
 } from "@firebase/auth";
 
-export const googleSignIn = () => {
+export const googleSignIn = async () => {
   const googleprovider = new GoogleAuthProvider();
-  signInWithRedirect(auth, googleprovider);
+  const userCred = await signInWithPopup(auth, googleprovider);
+  return userCred?.user;
 };
 
-export const facebookSignIn = () => {
+export const facebookSignIn = async () => {
   const facebookprovider = new FacebookAuthProvider();
-  signInWithRedirect(auth, facebookprovider);
+  const userCred = await signInWithPopup(auth, facebookprovider);
+  return userCred?.user;
 };
 
 export const logOut = () => {

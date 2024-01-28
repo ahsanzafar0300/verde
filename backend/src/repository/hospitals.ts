@@ -4,9 +4,18 @@ import {
   Hospital,
   HospitalRepositoryInterface,
 } from "../interfaces/HospitalRepositoryInterface";
+import BaseRepository from "./baseRepository";
 
-class HospitalsRepository implements HospitalRepositoryInterface {
+class HospitalsRepository
+  extends BaseRepository
+  implements HospitalRepositoryInterface
+{
+  constructor() {
+    super();
+  }
+
   async findHospitals() {
+    // const decoded = await super.verifyToken(token);
     const hospitals = prisma.hospitals.findMany();
     return hospitals;
   }

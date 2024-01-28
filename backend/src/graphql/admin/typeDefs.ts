@@ -11,6 +11,7 @@ export const typeDefs = `#graphql
     type AdminReturn{
         token:String
         email:String
+        error:String
     }
     input AdminInput {
         first_name: String!

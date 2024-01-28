@@ -10,11 +10,14 @@ import {
 } from "./queriesAndUtils";
 import { notifyFailure, notifySuccess } from "../../utils/Utils";
 import { Toaster } from "react-hot-toast";
+import { loadingEnd, loadingStart } from "../../redux/slices/loadingSlice";
+import { useDispatch } from "react-redux";
 
 const ForgotPasswordEmail = () => {
   const [email, setEmail] = useState("");
   const { state } = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   useEffect(() => {
     if (!state?.for) {
@@ -28,24 +31,27 @@ const ForgotPasswordEmail = () => {
 
   const sendEmail = async (email: string, id: number) => {
     const res = await forgotPassword(email, id, state?.for);
+    dispatch(loadingEnd());
     if (res?.id) {
       notifySuccess("Verification Code is sent to your email. Redirecting...");
       setTimeout(() => {
         navigate("/forgot-password/2", { state: { for: state?.for, id } });
       }, 1000);
     } else {
-      console.log(res);
+      notifyFailure("We couldn't send Verification Code to your email.");
     }
   };
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     if (email?.length > 0) {
+      dispatch(loadingStart());
       if (state?.for === users.patient) {
         const res = await getPatientByEmail(email);
         if (res?.id) {
           sendEmail(email, parseInt(res.id));
         } else {
+          dispatch(loadingEnd());
           notifyFailure("This email does not exist!");
         }
       } else if (state?.for === users.doctor) {
@@ -53,6 +59,7 @@ const ForgotPasswordEmail = () => {
         if (res?.id) {
           sendEmail(email, parseInt(res.id));
         } else {
+          dispatch(loadingEnd());
           notifyFailure("This email does not exist!");
         }
       } else if (state?.for === users.admin) {
@@ -60,6 +67,7 @@ const ForgotPasswordEmail = () => {
         if (res?.id) {
           sendEmail(email, parseInt(res.id));
         } else {
+          dispatch(loadingEnd());
           notifyFailure("This email does not exist!");
         }
       }

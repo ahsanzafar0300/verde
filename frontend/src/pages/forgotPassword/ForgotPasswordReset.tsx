@@ -8,12 +8,15 @@ import {
   notifySuccess,
 } from "../../utils/Utils";
 import { Toaster } from "react-hot-toast";
+import { loadingEnd, loadingStart } from "../../redux/slices/loadingSlice";
+import { useDispatch } from "react-redux";
 
 const ForgotPasswordReset = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const { state } = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   useEffect(() => {
     if (!state?.for) {
@@ -36,11 +39,13 @@ const ForgotPasswordReset = () => {
     if (password?.length > 0 && confirmPassword?.length > 0) {
       if (password === confirmPassword) {
         if (isValidPassword(password)?.status) {
+          dispatch(loadingStart());
           const res = await updatePassword(
             state?.id.toString(),
             state?.for,
             password
           );
+          dispatch(loadingEnd());
           if (res?.id) {
             notifySuccess("Password Changed Successfully!");
             setTimeout(() => handleNavigate(), 1000);
@@ -85,9 +90,9 @@ const ForgotPasswordReset = () => {
           <div className="mb-5">
             <small className="text-primary">
               <span className="font-bold">Note:</span>&nbsp;Password must be
-              8-12 characters, with at least 1 uppercase letter, 1 lowercase
-              letter, 1 numeric character, and 1 special character. Avoid using
-              palindromes.
+              greater than 8 characters, with at least 1 uppercase letter, 1
+              lowercase letter, 1 numeric character, and 1 special character.
+              Avoid using palindromes.
             </small>
           </div>
           <button className="form-btn my-3">Reset Password</button>

@@ -1,8 +1,7 @@
-import { useParams } from "react-router-dom";
-import { DashboardSection } from "../../../../components";
+import { useNavigate, useParams } from "react-router-dom";
+import { CheckboxInput, DashboardSection } from "../../../../components";
 import { publicRequest } from "../../../../api/requestMethods";
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import CheckboxInput from "../../../../components/CheckboxInput";
 import { useState, useEffect } from "react";
 import {
   DOCTOR_QUERY,
@@ -20,22 +19,32 @@ export default function AdminDoctorProfile() {
   const [verified, setVerified] = useState(false);
   const { id } = useParams();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const getHospitals = async () => {
-    return publicRequest
-      .post("/graphql", {
+    try {
+      const response = await publicRequest.post("/graphql", {
         query: HOSPITAL_QUERY,
-      })
-      .then((response) => response.data.data.hospitals);
+      });
+      return response.data.data.hospitals;
+    } catch (error) {
+      console.error("Error fetching hospitals:", error);
+      throw error;
+    }
   };
 
   const getDoctor = async () => {
-    return publicRequest
-      .post("/graphql", {
+    try {
+      const response = await publicRequest.post("/graphql", {
         query: DOCTOR_QUERY,
         variables: { id },
-      })
-      .then((response) => response.data.data.findDoctorById);
+      });
+
+      return response.data.data.findDoctorById;
+    } catch (error) {
+      console.error("Error fetching doctor:", error);
+      throw error;
+    }
   };
 
   const allHospitals = useQuery({
@@ -188,6 +197,24 @@ export default function AdminDoctorProfile() {
     );
   };
 
+  if (!doctorData?.data) {
+    return (
+      <DashboardSection title="">
+        <div className="h-48 flex flex-col justify-center items-center gap-2">
+          <h2 className="text-2xl font-medium">No Doctor Found!</h2>
+          <div className="w-48">
+            <button
+              className="form-btn"
+              onClick={() => navigate("/admin-dashboard/doctors")}
+            >
+              Go to doctors
+            </button>
+          </div>
+        </div>
+      </DashboardSection>
+    );
+  }
+
   return (
     <DashboardSection
       title={
@@ -226,8 +253,6 @@ export default function AdminDoctorProfile() {
         </div>
         <div className="col-span-6 flex items-center gap-2">
           <span>Verified:</span>
-          <span>{verified ? "true" : "False"}</span>
-
           <label className="relative inline-flex items-center cursor-pointer">
             <input
               type="checkbox"

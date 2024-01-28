@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { flushUser } from "../redux/slices/userSlice.ts";
 import { RootState } from "../redux/store.ts";
 import { USER_ROLES } from "../api/roles.ts";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Navbar() {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -28,7 +28,9 @@ export default function Navbar() {
   };
   return (
     <nav className="w-full py-4 px-8 bg-white flex justify-between items-center border-b-2">
-      <img src={logo} alt="Logo Image" className="w-32" />
+      <Link to="/">
+        <img src={logo} alt="Logo Image" className="w-32" />
+      </Link>
       <div className="flex gap-3 items-center">
         <button className="py-1.5 px-6 rounded-[30px] btn-back text-white flex items-center gap-2">
           <FiPhoneCall />

@@ -1,7 +1,8 @@
+export { default as Homepage } from "./Homepage";
 export { default as PatientSignIn } from "./PatientSignIn";
-export { default as PatientSignUp } from "./PatientSignUp";
+export { default as PatientSignUp } from "./patientSignUp/PatientSignUp";
 export { default as DoctorSignIn } from "./DoctorSignIn";
-export { default as DoctorSignUp } from "./DoctorSignUp";
+export { default as DoctorSignUp } from "./doctorSignUp/DoctorSignUp";
 export { default as AdminSignUp } from "./AdminSignUp";
 export { default as AdminSignIn } from "./AdminSignIn";
 export { default as DoctorProfile } from "./doctorDashboard/DoctorProfile";

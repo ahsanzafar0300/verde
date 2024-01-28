@@ -3,6 +3,7 @@ export default function RadioInput({
   name,
   options,
   onChange,
+  error,
 }: RadioInputProps) {
   return (
     <div className="my-3.5">
@@ -26,6 +27,9 @@ export default function RadioInput({
           </div>
         ))}
       </div>
+      {error && (
+        <small className="text-red-500 font-medium uppercase">Required!</small>
+      )}
     </div>
   );
 }
@@ -40,4 +44,5 @@ type RadioInputProps = {
   name: string;
   options: Option[] | undefined;
   onChange: (e: any) => void;
+  error?: boolean;
 };

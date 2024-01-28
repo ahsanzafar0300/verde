@@ -74,6 +74,16 @@ class DoctorService {
     const verificationCode = await this.doctors.verifyDoctorCode(code, id);
     return verificationCode;
   }
+
+  async doctorOTP(email: string) {
+    const patient = await this.doctors.doctorOTP(email);
+    return patient;
+  }
+
+  async verifyDoctorOTP(code: string, hashCode: string) {
+    const verificationCode = await this.doctors.verifyDoctorOTP(code, hashCode);
+    return verificationCode;
+  }
 }
 
 export default DoctorService;

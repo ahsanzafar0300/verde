@@ -51,12 +51,18 @@ class AdminRepository
   async getAdminToken(payload: GetUserTokenPayload) {
     const { email, password } = payload;
     const user = await this.findAdminByEmail(email);
-    if (!user) throw new Error("user not found");
-
+    if (!user) {
+      return {
+        error: "Email does not exist!",
+      };
+    }
     const usersHashPassword = await this.generateHash(SALT, password);
 
-    if (usersHashPassword !== user.password)
-      throw new Error("Incorrect Password");
+    if (usersHashPassword !== user.password) {
+      return {
+        error: "Incorrect password!",
+      };
+    }
 
     const token = JWT.sign({ id: user.id, email: user.email }, JWT_SECRET, {
       expiresIn: "1h",

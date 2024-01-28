@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { DashboardSection } from "../../../../components";
 import { publicRequest } from "../../../../api/requestMethods";
 import { useQuery } from "react-query";
@@ -7,6 +7,7 @@ import { DOCTOR_QUERY, HOSPITAL_QUERY } from "./queries";
 
 export default function AdminHospitalProfile() {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const getHospital = async () => {
     try {
@@ -58,9 +59,25 @@ export default function AdminHospitalProfile() {
 
   useEffect(() => {
     doctorData.refetch();
-    console.log(doctorHospitals);
-    console.log("fetch");
   }, [doctorHospitals]);
+
+  if (!hospitalData?.data) {
+    return (
+      <DashboardSection title="">
+        <div className="h-48 flex flex-col justify-center items-center gap-2">
+          <h2 className="text-2xl font-medium">No Hospital Found!</h2>
+          <div className="w-48">
+            <button
+              className="form-btn"
+              onClick={() => navigate("/admin-dashboard/hospitals")}
+            >
+              Go to hospitals
+            </button>
+          </div>
+        </div>
+      </DashboardSection>
+    );
+  }
 
   return (
     <DashboardSection title={hospitalData?.data?.name}>
