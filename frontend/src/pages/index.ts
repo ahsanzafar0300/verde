@@ -1,10 +1,10 @@
-export { default as Homepage } from "./Homepage";
-export { default as PatientSignIn } from "./PatientSignIn";
+export { default as Homepage } from "./home/Homepage";
+export { default as PatientSignIn } from "./patientSignIn/PatientSignIn";
 export { default as PatientSignUp } from "./patientSignUp/PatientSignUp";
-export { default as DoctorSignIn } from "./DoctorSignIn";
+export { default as DoctorSignIn } from "./doctorSignIn/DoctorSignIn";
 export { default as DoctorSignUp } from "./doctorSignUp/DoctorSignUp";
-export { default as AdminSignUp } from "./AdminSignUp";
-export { default as AdminSignIn } from "./AdminSignIn";
+export { default as AdminSignUp } from "./adminSignUp/AdminSignUp";
+export { default as AdminSignIn } from "./adminSignIn/AdminSignIn";
 export { default as DoctorProfile } from "./doctorDashboard/DoctorProfile";
 export { default as PatientProfile } from "./patientDashboard/PatientProfile";
 export { default as AdminDashboardHome } from "./adminDashboard/AdminDashboardHome";
@@ -16,6 +16,7 @@ export { default as AdminNewHospital } from "./adminDashboard/hospitals/AdminNew
 export { default as AdminDoctorProfile } from "./adminDashboard/doctors/AdminDoctorProfile/AdminDoctorProfile";
 export { default as AdminHospitalProfile } from "./adminDashboard/hospitals/AdminHospitalProfile/AdminHospitalProfile";
 export { default as AdminPatientProfile } from "./adminDashboard/patients/AdminPatientProfile";
+export { default as AdminEditPatient } from "./adminDashboard/patients/AdminEditPatient/AdminEditPatient";
 export { default as ForgotPasswordEmail } from "./forgotPassword/ForgotPasswordEmail";
 export { default as ForgotPasswordCode } from "./forgotPassword/ForgotPasswordCode";
 export { default as ForgotPasswordReset } from "./forgotPassword/ForgotPasswordReset";

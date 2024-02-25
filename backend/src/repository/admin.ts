@@ -53,14 +53,14 @@ class AdminRepository
     const user = await this.findAdminByEmail(email);
     if (!user) {
       return {
-        error: "Email does not exist!",
+        error: "Invalid Email or Password!",
       };
     }
     const usersHashPassword = await this.generateHash(SALT, password);
 
     if (usersHashPassword !== user.password) {
       return {
-        error: "Incorrect password!",
+        error: "Invalid Email or Password!",
       };
     }
 

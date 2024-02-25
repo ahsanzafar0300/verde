@@ -13,13 +13,7 @@ import { useMutation, useQuery } from "react-query";
 import { Toaster } from "react-hot-toast";
 import { facebookSignIn, googleSignIn } from "../../firebase/utils";
 import { publicRequest } from "../../api/requestMethods";
-import {
-  PasswordCheckType,
-  isPhoneValid,
-  isValidPassword,
-  notifyFailure,
-  notifySuccess,
-} from "../../utils/Utils";
+import { isPhoneValid, notifyFailure, notifySuccess } from "../../utils/Utils";
 import { useDispatch } from "react-redux";
 import { loadingEnd, loadingStart } from "../../redux/slices/loadingSlice";
 import OtpInput from "react-otp-input";
@@ -29,8 +23,11 @@ import {
   PATIENT_SEND_OTP_QUERY,
   PATIENT_VERIFY_OTP_QUERY,
 } from "./queries";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-const inputsArr = [
+const inputs = [
   {
     label: "First Name",
     type: "text",
@@ -78,24 +75,50 @@ const inputsArr = [
   },
 ];
 
-const initialValue = {
-  email: "",
-  password: "",
-  first_name: "",
-  last_name: "",
-  phone_number: "",
-  gender: "",
-};
+const UserSchema = z
+  .object({
+    first_name: z.string().min(1, { message: "First Name is required" }),
+    last_name: z.string().min(1, { message: "Last Name is required" }),
+    email: z.string().min(1, { message: "Email is required" }).email(),
+    phone_number: z.string().min(1, { message: "Phone Number is required" }),
+    gender: z
+      .string({
+        invalid_type_error: "Gender is required",
+      })
+      .min(1, { message: "Gender is required" }),
+    password: z
+      .string()
+      .min(1, { message: "Password is required" })
+      .min(9, { message: "Password is too short" })
+      .regex(/[A-Z]/, { message: "Please include an uppercase letter" })
+      .regex(/[a-z]/, { message: "Please include a lowercase letter" })
+      .regex(/\d/, {
+        message: "Please include atleast one number",
+      })
+      .regex(/[^a-zA-Z0-9]/, {
+        message: "Please include atleast one special character",
+      }),
+  })
+  .refine((data) => isPhoneValid(data.phone_number), {
+    message: "Invalid Phone Number",
+    path: ["phone_number"],
+  });
 
 export default function PatientSignUp() {
-  const [inputs, setInputs] = useState(inputsArr);
-  const [inputValues, setInputValues] = useState<Inputs>(initialValue);
+  const {
+    register,
+    handleSubmit,
+    getValues,
+    setValue,
+    setError,
+    reset,
+    formState: { errors },
+  } = useForm({ resolver: zodResolver(UserSchema) });
   const [showSignupModal, setShowSignupModal] = useState(false);
   const [showOTPModal, setShowOTPModal] = useState(false);
   const [otp, setOtp] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const valid = isPhoneValid(inputValues?.phone_number);
 
   const createPatient = async (data: any) => {
     return publicRequest
@@ -110,7 +133,7 @@ export default function PatientSignUp() {
     return publicRequest
       .post("/graphql", {
         query: EXISTING_PATIENT_QUERY,
-        variables: { email: inputValues?.email },
+        variables: { email: getValues("email") },
       })
       .then((response) => response.data.data.findPatientByEmail);
   };
@@ -119,7 +142,7 @@ export default function PatientSignUp() {
     return publicRequest
       .post("/graphql", {
         query: PATIENT_SEND_OTP_QUERY,
-        variables: { email: inputValues?.email },
+        variables: { email: getValues("email") },
       })
       .then((response) => response.data.data.patientOTP);
   };
@@ -150,40 +173,16 @@ export default function PatientSignUp() {
     enabled: false,
   });
 
-  const setFieldError = (fieldName?: string) => {
-    let updatedInputs;
-    if (fieldName) {
-      updatedInputs = inputs.map((input) => ({
-        ...input,
-        error: input.name === fieldName,
-      }));
-    } else {
-      updatedInputs = inputs.map((input) => ({
-        ...input,
-        error: inputValues[input.name] === "",
-      }));
-    }
-    setInputs(updatedInputs);
-  };
-
-  const handleChange = (e: any) => {
-    setInputValues((prev: any) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
-
   const handleLogin = () => {
     dispatch(loadingStart());
-    mutate(inputValues);
+    mutate(getValues());
   };
 
   const handleValidation = async () => {
     dispatch(loadingStart());
     const email = await patientEmail.refetch();
     if (email?.data?.id) {
-      notifyFailure("Email Already Exists!");
-      setFieldError("email");
+      setError("email", { message: "Email Already Exists!" });
     } else {
       const otp = await patientOTPData.refetch();
       if (otp?.data?.code) {
@@ -194,31 +193,13 @@ export default function PatientSignUp() {
     dispatch(loadingEnd());
   };
 
-  const handleSubmit = (e: any) => {
-    e.preventDefault();
-    if (Object.values(inputValues).every((value) => value !== "")) {
-      if (valid) {
-        const passwordCheck: PasswordCheckType = isValidPassword(
-          inputValues?.password
-        );
-        if (passwordCheck?.status) {
-          handleValidation();
-        } else {
-          notifyFailure(passwordCheck?.msg);
-        }
-      } else {
-        notifyFailure("Phone Number is not valid!");
-        setFieldError("phone_number");
-      }
-    } else {
-      setFieldError();
-      notifyFailure("Please fill all fields!");
-    }
+  const onSubmit = () => {
+    handleValidation();
   };
 
   useEffect(() => {
     if (data) {
-      setInputValues(initialValue);
+      reset();
       if (data?.email) {
         notifySuccess("Sign Up Success.");
         setTimeout(() => {
@@ -238,7 +219,10 @@ export default function PatientSignUp() {
       email: userData?.email,
       password: userData?.uid,
     };
-    setInputValues((prev) => ({ ...prev, ...user }));
+    setValue("first_name", user?.first_name);
+    setValue("last_name", user?.last_name);
+    setValue("email", user?.email);
+    setValue("password", user?.password);
     setShowSignupModal(true);
   };
 
@@ -260,13 +244,8 @@ export default function PatientSignUp() {
     }
   };
 
-  const handleModalSubmit = (e: any) => {
-    e.preventDefault();
-    if (Object.values(inputValues).every((value) => value !== "")) {
-      handleValidation();
-    } else {
-      notifyFailure("Please fill all fields!");
-    }
+  const handleModalSubmit = async () => {
+    handleValidation();
   };
 
   const handleOTPSubmit = async (e: any) => {
@@ -291,7 +270,7 @@ export default function PatientSignUp() {
     <main className="grid grid-cols-12 items-center gap-6">
       <section className="col-start-2 col-span-5">
         <div className=" justify-self-center">
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit(onSubmit)}>
             <h3 className="text-4xl text-primary font-bold my-3">
               Create Account
             </h3>
@@ -303,18 +282,13 @@ export default function PatientSignUp() {
                       label={input?.label}
                       name={input?.name}
                       options={input?.options}
-                      onChange={handleChange}
-                      error={input.error}
+                      properties={{ ...register(input?.name) }}
+                      error={errors[input?.name]}
                     />
                   ) : input.type === "number" ? (
                     <PhoneInputComp
-                      error={input.error}
-                      onChange={(e) => {
-                        setInputValues((prev) => ({
-                          ...prev,
-                          phone_number: e,
-                        }));
-                      }}
+                      properties={{ ...register(input?.name) }}
+                      error={errors[input?.name]}
                     />
                   ) : (
                     <InputField
@@ -322,8 +296,8 @@ export default function PatientSignUp() {
                       name={input.name}
                       type={input.type}
                       placeholder={input.placeholder}
-                      onChange={handleChange}
-                      error={input.error}
+                      properties={{ ...register(input?.name) }}
+                      error={errors[input?.name]}
                     />
                   )}
                 </div>
@@ -415,15 +389,12 @@ export default function PatientSignUp() {
         showModal={showSignupModal}
         setModal={setShowSignupModal}
       >
-        <form className="space-y-4" onSubmit={handleModalSubmit}>
+        <form className="space-y-4" onSubmit={handleSubmit(handleModalSubmit)}>
           <PhoneInputComp
-            value={inputValues?.phone_number}
-            onChange={(e) => {
-              setInputValues((prev) => ({
-                ...prev,
-                phone_number: e,
-              }));
-            }}
+            value={getValues("phone_number")}
+            onChange={(e) => setValue("phone_number", e)}
+            properties={{ ...register("phone_number") }}
+            error={errors?.phone_number}
           />
           <RadioInput
             label="Gender"
@@ -432,7 +403,10 @@ export default function PatientSignUp() {
               { label: "Male", value: "male" },
               { label: "Female", value: "female" },
             ]}
-            onChange={handleChange}
+            onChange={(e) => setValue("gender", e.target.value)}
+            selected={`${getValues("gender")}`}
+            properties={{ ...register("gender") }}
+            error={errors?.gender}
           />
           <button type="submit" className="form-btn">
             Sign Up
@@ -441,14 +415,4 @@ export default function PatientSignUp() {
       </Modal>
     </main>
   );
-}
-
-interface Inputs {
-  [key: string]: string | string[] | boolean;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone_number: string;
-  gender: string;
-  password: string;
 }

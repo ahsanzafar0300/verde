@@ -10,13 +10,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "react-query";
 import { Toaster } from "react-hot-toast";
 import { publicRequest } from "../../api/requestMethods";
-import {
-  PasswordCheckType,
-  isPhoneValid,
-  isValidPassword,
-  notifyFailure,
-  notifySuccess,
-} from "../../utils/Utils";
+import { isPhoneValid, notifyFailure, notifySuccess } from "../../utils/Utils";
 import { useDispatch } from "react-redux";
 import { loadingEnd, loadingStart } from "../../redux/slices/loadingSlice";
 import {
@@ -26,8 +20,11 @@ import {
   NEW_DOCTOR_QUERY,
 } from "./queries";
 import OTPInput from "react-otp-input";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-const inputsArr = [
+const inputs = [
   {
     label: "First Name",
     type: "text",
@@ -75,23 +72,48 @@ const inputsArr = [
   },
 ];
 
-const initialValue = {
-  first_name: "",
-  last_name: "",
-  email: "",
-  phone_number: "",
-  gender: "",
-  password: "",
-};
+const UserSchema = z
+  .object({
+    first_name: z.string().min(1, { message: "First Name is required" }),
+    last_name: z.string().min(1, { message: "Last Name is required" }),
+    email: z.string().min(1, { message: "Email is required" }).email(),
+    phone_number: z.string().min(1, { message: "Phone Number is required" }),
+    gender: z
+      .string({
+        invalid_type_error: "Gender is required",
+      })
+      .min(1, { message: "Gender is required" }),
+    password: z
+      .string()
+      .min(1, { message: "Password is required" })
+      .min(9, { message: "Password is too short" })
+      .regex(/[A-Z]/, { message: "Please include an uppercase letter" })
+      .regex(/[a-z]/, { message: "Please include a lowercase letter" })
+      .regex(/\d/, {
+        message: "Please include atleast one number",
+      })
+      .regex(/[^a-zA-Z0-9]/, {
+        message: "Please include atleast one special character",
+      }),
+  })
+  .refine((data) => isPhoneValid(data.phone_number), {
+    message: "Invalid Phone Number",
+    path: ["phone_number"],
+  });
 
 export default function DoctorSignUp() {
-  const [inputs, setInputs] = useState(inputsArr);
-  const [inputValues, setInputValues] = useState<Inputs>(initialValue);
+  const {
+    register,
+    handleSubmit,
+    getValues,
+    setError,
+    reset,
+    formState: { errors },
+  } = useForm({ resolver: zodResolver(UserSchema) });
   const [showOTPModal, setShowOTPModal] = useState(false);
   const [otp, setOtp] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const valid = isPhoneValid(inputValues?.phone_number);
 
   const createDoctor = async (data: any) => {
     return publicRequest
@@ -106,7 +128,7 @@ export default function DoctorSignUp() {
     return publicRequest
       .post("/graphql", {
         query: EXISTING_DOCTOR_QUERY,
-        variables: { email: inputValues?.email },
+        variables: { email: getValues("email") },
       })
       .then((response) => response.data.data.findDoctorByEmail);
   };
@@ -115,7 +137,7 @@ export default function DoctorSignUp() {
     return publicRequest
       .post("/graphql", {
         query: DOCTOR_SEND_OTP_QUERY,
-        variables: { email: inputValues?.email },
+        variables: { email: getValues("email") },
       })
       .then((response) => response.data.data.doctorOTP);
   };
@@ -146,40 +168,20 @@ export default function DoctorSignUp() {
     enabled: false,
   });
 
-  const setFieldError = (fieldName?: string) => {
-    let updatedInputs;
-    if (fieldName) {
-      updatedInputs = inputs.map((input) => ({
-        ...input,
-        error: input.name === fieldName,
-      }));
-    } else {
-      updatedInputs = inputs.map((input) => ({
-        ...input,
-        error: inputValues[input.name] === "",
-      }));
-    }
-    setInputs(updatedInputs);
-  };
-
-  const handleChange = (e: any) => {
-    setInputValues((prev: any) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
-
   const handleLogin = () => {
     dispatch(loadingStart());
-    mutate(inputValues);
+    mutate(getValues());
   };
 
-  const handleValidation = async () => {
+  const onSubmit = async () => {
     dispatch(loadingStart());
     const email = await doctorEmail.refetch();
     if (email?.data?.id) {
-      notifyFailure("Email Already Exists!");
-      setFieldError("email");
+      setError(
+        "email",
+        { message: "Email Already Exists!" },
+        { shouldFocus: true }
+      );
     } else {
       const otp = await doctorOTPData.refetch();
       if (otp?.data?.code) {
@@ -190,31 +192,9 @@ export default function DoctorSignUp() {
     dispatch(loadingEnd());
   };
 
-  const handleSubmit = (e: any) => {
-    e.preventDefault();
-    if (Object.values(inputValues).every((value) => value !== "")) {
-      if (valid) {
-        const passwordCheck: PasswordCheckType = isValidPassword(
-          inputValues?.password
-        );
-        if (passwordCheck?.status) {
-          handleValidation();
-        } else {
-          notifyFailure(passwordCheck?.msg);
-        }
-      } else {
-        notifyFailure("Phone Number is not valid!");
-        setFieldError("phone_number");
-      }
-    } else {
-      setFieldError();
-      notifyFailure("Please fill all fields!");
-    }
-  };
-
   useEffect(() => {
     if (data) {
-      setInputValues(initialValue);
+      reset();
       if (data?.email) {
         notifySuccess("Sign Up Success.");
         setTimeout(() => {
@@ -256,7 +236,7 @@ export default function DoctorSignUp() {
           <h3 className="text-2xl text-primary font-bold my-3 border-b border-primary pt-2 pb-4 px-5">
             Not a Doctor?
           </h3>
-          <form onSubmit={handleSubmit} className="pt-2 pb-6 px-5">
+          <form onSubmit={handleSubmit(onSubmit)} className="pt-2 pb-6 px-5">
             <div className="grid grid-cols-12 gap-x-4 gap-y-0">
               {inputs?.map((input) => (
                 <div className="col-span-6">
@@ -265,18 +245,13 @@ export default function DoctorSignUp() {
                       label={input?.label}
                       name={input?.name}
                       options={input?.options}
-                      onChange={handleChange}
-                      error={input.error}
+                      properties={{ ...register(input?.name) }}
+                      error={errors[input?.name]}
                     />
                   ) : input.type === "number" ? (
                     <PhoneInputComp
-                      error={input.error}
-                      onChange={(e) => {
-                        setInputValues((prev) => ({
-                          ...prev,
-                          phone_number: e,
-                        }));
-                      }}
+                      properties={{ ...register(input?.name) }}
+                      error={errors[input?.name]}
                     />
                   ) : (
                     <InputField
@@ -284,8 +259,8 @@ export default function DoctorSignUp() {
                       name={input.name}
                       type={input.type}
                       placeholder={input.placeholder}
-                      onChange={handleChange}
-                      error={input.error}
+                      properties={{ ...register(input?.name) }}
+                      error={errors[input?.name]}
                     />
                   )}
                 </div>
@@ -315,7 +290,7 @@ export default function DoctorSignUp() {
                 </label>
               </div>
             </div>
-            <button className="form-btn my-3">Log In</button>
+            <button className="form-btn my-3">Sign Up</button>
             <small className="block my-1 text-primary text-center">
               Already have an account?{" "}
               <Link to="/doctor/sign-in" className="font-bold">
@@ -356,14 +331,4 @@ export default function DoctorSignUp() {
       </Modal>
     </main>
   );
-}
-
-interface Inputs {
-  [key: string]: string | string[] | boolean;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone_number: string;
-  gender: string;
-  password: string;
 }

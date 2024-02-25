@@ -10,20 +10,20 @@ const queries = {
   appointments: () => {
     return appointmentService.getAllAppointments();
   },
-  findAppointmentByPatient: (_: void, { id }: { id: number }) => {
-    return appointmentService.findAppointmentByPatient(id);
+  findAppointmentByPatient: (_: void, { id }: { id: string }) => {
+    return appointmentService.findAppointmentByPatient(parseInt(id));
   },
-  findAppointmentByDoctor: (_: void, { id }: { id: number }) => {
-    return appointmentService.findAppointmentByDoctor(id);
+  findAppointmentByDoctor: (_: void, { id }: { id: string }) => {
+    return appointmentService.findAppointmentByDoctor(parseInt(id));
   },
-  getPatientAppointments: (_: void, { id }: { id: number }) => {
-    return appointmentService.getPatientAppointments(id);
+  getPatientAppointments: (_: void, { id }: { id: string }) => {
+    return appointmentService.getPatientAppointments(parseInt(id));
   },
-  getDoctorAppointments: (_: void, { id }: { id: number }) => {
-    return appointmentService.getDoctorAppointments(id);
+  getDoctorAppointments: (_: void, { id }: { id: string }) => {
+    return appointmentService.getDoctorAppointments(parseInt(id));
   },
-  getPaymentAppointment: (_: void, { id }: { id: number }) => {
-    return appointmentService.getPaymentAppointment(id);
+  getPaymentAppointment: (_: void, { id }: { id: string }) => {
+    return appointmentService.getPaymentAppointment(parseInt(id));
   },
 };
 

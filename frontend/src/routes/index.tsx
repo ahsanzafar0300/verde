@@ -8,6 +8,7 @@ import {
   AdminDashboardHome,
   AdminDoctorProfile,
   AdminDoctors,
+  AdminEditPatient,
   AdminHospitalProfile,
   AdminHospitals,
   AdminNewDoctor,
@@ -89,6 +90,7 @@ export const router = createBrowserRouter(
               <Route path="doctors/:id" element={<AdminDoctorProfile />} />
               <Route path="patients" element={<AdminPatients />} />
               <Route path="patients/:id" element={<AdminPatientProfile />} />
+              <Route path="patients/edit/:id" element={<AdminEditPatient />} />
               <Route path="hospitals" element={<AdminHospitals />} />
               <Route path="hospitals/:id" element={<AdminHospitalProfile />} />
               <Route path="doctors/add-new" element={<AdminNewDoctor />} />

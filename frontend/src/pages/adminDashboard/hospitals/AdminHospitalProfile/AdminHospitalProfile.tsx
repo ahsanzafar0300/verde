@@ -53,8 +53,7 @@ export default function AdminHospitalProfile() {
   const doctorData = useQuery({
     queryKey: ["adminDoctors", "hospitals", id],
     queryFn: getDoctors,
-    enabled: !!doctorHospitals,
-    cacheTime: 2000,
+    enabled: false,
   });
 
   useEffect(() => {

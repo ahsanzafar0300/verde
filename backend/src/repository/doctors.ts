@@ -61,13 +61,13 @@ class DoctorsRepository
     const user = await this.findDoctorByEmail(email);
     if (!user) {
       return {
-        error: "Email does not exist!",
+        error: "Invalid Email or Password!",
       };
     }
     const usersHashPassword = await super.generateHash(SALT, password);
     if (usersHashPassword !== user.password) {
       return {
-        error: "Incorrect password!",
+        error: "Invalid Email or Password!",
       };
     }
     const token = JWT.sign(

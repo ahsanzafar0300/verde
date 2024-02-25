@@ -58,8 +58,17 @@ const inputs = [
   },
 ];
 
+const initialValue = {
+  email: "",
+  password: "",
+  first_name: "",
+  last_name: "",
+  phone_number: "",
+  gender: "",
+};
+
 export default function AdminNewDoctor() {
-  const [inputValues, setInputValues] = useState({});
+  const [inputValues, setInputValues] = useState<Inputs>(initialValue);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -124,6 +133,7 @@ export default function AdminNewDoctor() {
                   options={input?.options}
                   name={input?.name}
                   onChange={handleChange}
+                  selected={`${inputValues?.[input?.name]}`}
                 />
               ) : (
                 <InputField
@@ -146,11 +156,12 @@ export default function AdminNewDoctor() {
   );
 }
 
-// type DoctorInput = {
-//   first_name: string;
-//   last_name: string;
-//   email: string;
-//   password: string;
-//   phone_number: string;
-//   gender: string;
-// };
+interface Inputs {
+  [key: string]: string | string[] | boolean;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone_number: string;
+  gender: string;
+  password: string;
+}

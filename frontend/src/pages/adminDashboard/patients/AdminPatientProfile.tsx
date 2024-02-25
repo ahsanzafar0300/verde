@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { DashboardSection } from "../../../components";
 import { publicRequest } from "../../../api/requestMethods";
 import { useQuery } from "react-query";
@@ -76,6 +76,11 @@ export default function AdminPatientProfile() {
           <span>Gender:</span>
           <span>{patientData?.data?.gender}</span>
         </div>
+      </div>
+      <div className="w-48 mx-auto mt-6">
+        <Link to={`/admin-dashboard/patients/edit/${patientData?.data?.id}`}>
+          <button className="form-btn">Edit Patient</button>
+        </Link>
       </div>
     </DashboardSection>
   );
