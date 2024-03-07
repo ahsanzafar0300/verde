@@ -7,6 +7,7 @@ export const typeDefs = `#graphql
         phone_number: String
         password: String
         verification_code:String
+        verification_code_expiry:Int
     }
     type AdminReturn{
         token:String
@@ -27,5 +28,6 @@ export const typeDefs = `#graphql
         phone_number: String
         password: String
         verification_code:String
+        verification_code_expiry:Int
     }
 `;

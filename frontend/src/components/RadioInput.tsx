@@ -9,9 +9,11 @@ export default function RadioInput({
 }: RadioInputProps) {
   return (
     <div className="my-3.5">
-      <label className="text-xs text-primary duration-300 bg-white px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto start-1">
-        {label}
-      </label>
+      {label && (
+        <label className="text-xs text-primary duration-300 bg-white px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto start-1">
+          {label}
+        </label>
+      )}
       <div className="flex justify-evenly mt-2">
         {options?.map((option) => (
           <div className="flex items-center me-4">
@@ -46,7 +48,7 @@ type Option = {
 };
 
 type RadioInputProps = {
-  label: string;
+  label?: string;
   name: string;
   options: Option[] | undefined;
   onChange?: (e: any) => void;

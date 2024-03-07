@@ -1,11 +1,12 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 * {
-  font-family: "Inter", sans-serif;
+  font-family: "Raleway", sans-serif;
+  color: #125db9;
 }
 
 /* Hide the increment arrows for number input */
@@ -15,16 +16,16 @@ input[type="number"]::-webkit-outer-spin-button {
   margin: 0;
 }
 
-input[type="number"] {
-  -moz-appearance: textfield; /* Firefox */
-}
+/* input[type="number"] {
+  -moz-appearance: textfield;
+} */
 
 .btn-back {
   background: linear-gradient(180deg, #3fb946 0%, #125db9 100%);
 }
 
 .bg-primary {
-  @apply text-[#125DB9];
+  @apply bg-[#125DB9];
 }
 
 .text-primary {

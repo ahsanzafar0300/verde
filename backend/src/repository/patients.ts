@@ -101,15 +101,27 @@ class PatientsRepository
     const code = generateVerificationCode();
     const emailPromise = await super.sendEmailOnForgotPassword(email, code);
     if (emailPromise) {
-      return this.updatePatient(id, { verification_code: code });
+      const currentTime = Math.floor(new Date().getTime() / 1000);
+      const otpExpiryTime = currentTime + 5 * 60;
+      console.log(otpExpiryTime - currentTime);
+      return this.updatePatient(id, {
+        verification_code: code,
+        verification_code_expiry: otpExpiryTime,
+      });
     }
     return null;
   }
 
   async verifyPatientCode(code: string, id: number) {
     const patient = await this.findPatientById(id);
-    if (code === patient?.verification_code) {
-      return true;
+    const currentTime = Math.floor(new Date().getTime() / 1000);
+    const expiry = patient?.verification_code_expiry;
+    if (expiry! > currentTime) {
+      if (code === patient?.verification_code) {
+        return true;
+      } else {
+        return false;
+      }
     } else {
       return false;
     }

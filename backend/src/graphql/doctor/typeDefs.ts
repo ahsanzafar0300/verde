@@ -15,6 +15,7 @@ export const typeDefs = `#graphql
         password: String
         is_verified: Boolean
         verification_code: String
+        verification_code_expiry:Int
         doctorHospitals:[DoctorHospital]
     }
     type DoctorReturn{
@@ -39,6 +40,7 @@ export const typeDefs = `#graphql
         password: String
         is_verified: Boolean
         verification_code:String
+        verification_code_expiry:Int
     }
     type DoctorOTP{
         code:String

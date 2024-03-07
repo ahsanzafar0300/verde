@@ -1,16 +1,26 @@
 import { Link, Outlet } from "react-router-dom";
 import doctorImg from "../../assets/doctor.png";
+// import DashboardIcon from "../../assets/sidemenu/doctor/Dashboard.svg";
+import ProfileIcon from "../../assets/sidemenu/doctor/My Profile.svg";
+// import AppointmentsIcon from "../../assets/sidemenu/doctor/Appointments.svg";
+// import PatientsIcon from "../../assets/sidemenu/doctor/My Patients.svg";
+// import ScheduleIcon from "../../assets/sidemenu/doctor/Schedule Slots.svg";
+// import PaymentIcon from "../../assets/sidemenu/doctor/Payment & Payouts.svg";
 
 const links = [
-  { title: "Dashboard", href: "/" },
-  { title: "My Profile", href: "/profile" },
-  { title: "Appointments", href: "#" },
-  { title: "My Patients", href: "#" },
-  { title: "Schedule Slots", href: "#" },
-  { title: "Payment & Payouts", href: "#" },
+  // { title: "Dashboard", href: "/", icon: DashboardIcon },
+  { title: "My Profile", href: "/profile", icon: ProfileIcon },
+  // { title: "Appointments", href: "/appointments", icon: AppointmentsIcon },
+  // { title: "My Patients", href: "/my-patients", icon: PatientsIcon },
+  // { title: "Schedule Slots", href: "/schedule-slots", icon: ScheduleIcon },
+  // {
+  //   title: "Payment & Payouts",
+  //   href: "/payment-and-payouts",
+  //   icon: PaymentIcon,
+  // },
 ];
 
-const BASE_URL = "/patient-dashboard";
+const BASE_URL = "/doctor-dashboard";
 
 export default function DoctorLayout() {
   return (
@@ -35,12 +45,13 @@ export default function DoctorLayout() {
             Share My Booking Page
           </button>
         </div>
-        <div className="mt-5">
+        <div className="mt-5 flex flex-col items-center w-full">
           {links.map((link) => (
             <Link
               to={BASE_URL + link?.href}
-              className="block py-0.5 px-8 border-y border-[#125DB94D]"
+              className="flex items-center gap-2 py-0.5 px-8"
             >
+              <img src={link?.icon} alt="Icon" className="w-6" />
               {link?.title}
             </Link>
           ))}
@@ -52,3 +63,5 @@ export default function DoctorLayout() {
     </main>
   );
 }
+
+// border-y border-[#125DB94D]

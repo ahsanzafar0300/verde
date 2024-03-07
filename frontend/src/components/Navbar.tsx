@@ -7,13 +7,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { flushUser } from "../redux/slices/userSlice.ts";
 import { RootState } from "../redux/store.ts";
 import { USER_ROLES } from "../api/roles.ts";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 export default function Navbar() {
   const [showDropdown, setShowDropdown] = useState(false);
   const user = useSelector((state: RootState) => state.user.currentUser);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     if (user?.role === USER_ROLES.admin) {
@@ -28,14 +29,39 @@ export default function Navbar() {
   };
   return (
     <nav className="w-full py-4 px-8 bg-white flex justify-between items-center border-b-2">
-      <Link to="/">
-        <img src={logo} alt="Logo Image" className="w-32" />
-      </Link>
+      <div className="flex gap-4 items-center">
+        <Link to="/">
+          <img src={logo} alt="Logo Image" className="w-32" />
+        </Link>
+        {location.pathname === "/" && (
+          <div className="gap-3 items-center hidden lg:flex">
+            <Link to="/doctor/sign-in">Doctors</Link>
+            <Link to="#">Video Consult</Link>
+            <Link to="#">Medicines</Link>
+            <Link to="#">Lab Test</Link>
+            <Link to="#">Surgeries</Link>
+          </div>
+        )}
+      </div>
       <div className="flex gap-3 items-center">
-        <button className="py-1.5 px-6 rounded-[30px] btn-back text-white flex items-center gap-2">
-          <FiPhoneCall />
-          Help
-        </button>
+        {location.pathname === "/" ? (
+          <div className="gap-3 items-center hidden lg:flex">
+            <Link className="flex gap-1 items-center" to="#">
+              For Corp-orates <BiChevronDown size={20} />
+            </Link>
+            <Link className="flex gap-1 items-center" to="#">
+              For Providers <BiChevronDown size={20} />
+            </Link>
+            <Link className="flex gap-1 items-center" to="#">
+              Security & Help <BiChevronDown size={20} />
+            </Link>
+          </div>
+        ) : (
+          <button className="py-1.5 px-6 rounded-[30px] btn-back text-white flex items-center gap-2">
+            <FiPhoneCall fill="transparent" stroke="white" />
+            Help
+          </button>
+        )}
         <div className="relative">
           <div
             className="border-2 border-[#3FB946] flex gap-2 py-1.5 px-3 rounded"

@@ -20,6 +20,7 @@ model doctors {
   password             String                 @db.VarChar(255)
   is_verified          Boolean                @default(false)
   verification_code    String                 @db.VarChar(50) @default("")
+  verification_code_expiry Int   @default(0)
   appointments         appointments[]
   doctorSpecialization doctorSpecialization[]
   doctorHospitals      doctorHospitals[]
@@ -35,6 +36,7 @@ model patients {
   password     String         @db.VarChar(255)
   is_verified  Boolean        @default(false)
   verification_code    String                 @db.VarChar(50) @default("")
+  verification_code_expiry Int  @default(0)
   appointments appointments[]
 }
 
@@ -46,6 +48,7 @@ model admin {
   phone_number String @db.VarChar(50)
   password     String @db.VarChar(255)
   verification_code    String                 @db.VarChar(50) @default("")
+  verification_code_expiry Int  @default(0)
 }
 
 model appointments {

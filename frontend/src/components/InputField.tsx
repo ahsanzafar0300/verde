@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { SyntheticEvent, KeyboardEvent, useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 export default function InputField({
@@ -8,6 +8,7 @@ export default function InputField({
   placeholder,
   value,
   onChange,
+  onKeyDown,
   properties,
   error,
 }: InputFieldProps) {
@@ -25,6 +26,7 @@ export default function InputField({
         name={name}
         value={value}
         onChange={onChange ? onChange : {}}
+        onKeyDown={onKeyDown}
         {...properties}
         className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-primary placeholder:text-blue-600 bg-transparent rounded-lg border border-primary appearance-none focus:outline-none peer"
         style={{ border: error ? "1px solid crimson" : "" }}
@@ -58,7 +60,8 @@ interface InputFieldProps {
   name?: string;
   placeholder?: string;
   value?: string;
-  onChange?: (e: React.SyntheticEvent) => void;
+  onChange?: (e: SyntheticEvent) => void;
+  onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void;
   properties?: any;
   error?: any;
 }

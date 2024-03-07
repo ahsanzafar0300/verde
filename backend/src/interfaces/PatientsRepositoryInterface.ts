@@ -17,7 +17,8 @@ export interface Patient {
   phone_number: string;
   gender: string;
   is_verified: boolean;
-  verification_code?: string;
+  verification_code: string;
+  verification_code_expiry?: number;
 }
 
 export interface UpdatePatient {
@@ -29,6 +30,7 @@ export interface UpdatePatient {
   gender?: string;
   is_verified?: boolean;
   verification_code?: string;
+  verification_code_expiry?: number;
 }
 
 export interface GetUserTokenPayload {
