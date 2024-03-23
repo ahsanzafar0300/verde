@@ -16,6 +16,25 @@ export interface UpdateDoctor {
   gender?: string;
   is_verified?: boolean;
   verification_code?: string;
+  verification_code_expiry?: number;
+  image?: string;
+  city?: string;
+  country?: string;
+  department?: string;
+  experience?: string;
+  registration_no?: string;
+  qualification?: string;
+  consultation_mode?: string;
+  consultation_fee_regular?: number;
+  consultation_fee_discounted?: number;
+  booking_lead_time?: string;
+  payout_method?: string;
+  payout_method_id?: string;
+  address?: string;
+  postal_code?: string;
+  services?: string[];
+  specialization?: string[];
+  bibliography?: string;
 }
 
 export interface Doctor {
@@ -28,6 +47,25 @@ export interface Doctor {
   gender: string;
   is_verified: boolean;
   verification_code?: string;
+  verification_code_expiry?: number;
+  image?: string;
+  city?: string;
+  country?: string;
+  department?: string;
+  experience?: string;
+  registration_no?: string;
+  qualification?: string;
+  consultation_mode?: string;
+  consultation_fee_regular?: number;
+  consultation_fee_discounted?: number;
+  booking_lead_time?: string;
+  payout_method?: string;
+  payout_method_id?: string;
+  address?: string;
+  postal_code?: string;
+  services?: string[];
+  specialization?: string[];
+  bibliography?: string;
 }
 
 export interface GetUserTokenPayload {
@@ -36,6 +74,7 @@ export interface GetUserTokenPayload {
 }
 
 export interface ReturnUserTokenPayload {
+  id: number;
   token: string;
   email: string;
   role: string;
@@ -60,6 +99,4 @@ export interface DoctorsRepositoryInterface {
   updateDoctorPassword(id: number, password: string): Promise<Doctor>;
   doctorForgotPassword(email: string, id: number): Promise<Doctor | null>;
   verifyDoctorCode(code: string, id: number): Promise<Boolean>;
-  doctorOTP(email: string): Promise<{ code: string } | null>;
-  verifyDoctorOTP(code: string, hashCode: string): Promise<Boolean>;
 }

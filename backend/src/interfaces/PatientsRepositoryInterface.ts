@@ -39,6 +39,7 @@ export interface GetUserTokenPayload {
 }
 
 export interface ReturnUserTokenPayload {
+  id: number;
   token: string;
   email: string;
   role: string;
@@ -60,6 +61,4 @@ export interface PatientsRepositoryInterface {
   ): Promise<ReturnUserTokenPayload | ReturnError>;
   patientForgotPassword(email: string, id: number): Promise<Patient | null>;
   verifyPatientCode(code: string, id: number): Promise<Boolean>;
-  patientOTP(email: string): Promise<{ code: string } | null>;
-  verifyPatientOTP(code: string, hashCode: string): Promise<Boolean>;
 }

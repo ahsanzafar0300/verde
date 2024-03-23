@@ -15,16 +15,16 @@ findPatientByEmail(email: $email) {
 }
 `;
 
-export const PATIENT_SEND_OTP_QUERY = `
-query($email: String) {
-patientOTP(email: $email) {
-  code
+export const SEND_OTP_QUERY = `
+mutation($email: String!,$role: String!) {
+createUserOtp(email: $email,role: $role) {
+  id
 }
 }
 `;
 
-export const PATIENT_VERIFY_OTP_QUERY = `
-query ($code: String, $hashCode: String) {
-verifyPatientOTP(code: $code, hashCode: $hashCode)
+export const VERIFY_OTP_QUERY = `
+query ($email: String!,$role: String!, $code: String!) {
+verifyUserOtp(email: $email,role: $role,code: $code)
 }
 `;

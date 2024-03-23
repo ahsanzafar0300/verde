@@ -43,15 +43,6 @@ const queries = {
   ) => {
     return doctorService.verifyDoctorCode(code, parseInt(id));
   },
-  doctorOTP: async (_: void, { email }: { email: string }) => {
-    return doctorService.doctorOTP(email);
-  },
-  verifyDoctorOTP: async (
-    _: void,
-    { code, hashCode }: { code: string; hashCode: string }
-  ) => {
-    return doctorService.verifyDoctorOTP(code, hashCode);
-  },
 };
 
 const mutations = {

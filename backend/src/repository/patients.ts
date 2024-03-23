@@ -90,6 +90,7 @@ class PatientsRepository
       expiresIn: "1h",
     });
     const returnValue = {
+      id: user.id,
       token: token,
       email: email,
       role: USER_ROLES.patient,
@@ -98,18 +99,19 @@ class PatientsRepository
   }
 
   async patientForgotPassword(email: string, id: number) {
-    const code = generateVerificationCode();
-    const emailPromise = await super.sendEmailOnForgotPassword(email, code);
-    if (emailPromise) {
+    try {
+      const code = generateVerificationCode();
       const currentTime = Math.floor(new Date().getTime() / 1000);
       const otpExpiryTime = currentTime + 5 * 60;
-      console.log(otpExpiryTime - currentTime);
-      return this.updatePatient(id, {
+      const res = await this.updatePatient(id, {
         verification_code: code,
         verification_code_expiry: otpExpiryTime,
       });
+      const emailPromise = await super.sendEmailOnForgotPassword(email, code);
+      return res;
+    } catch (error) {
+      return null;
     }
-    return null;
   }
 
   async verifyPatientCode(code: string, id: number) {
@@ -122,27 +124,6 @@ class PatientsRepository
       } else {
         return false;
       }
-    } else {
-      return false;
-    }
-  }
-
-  async patientOTP(email: string) {
-    const code = generateVerificationCode();
-    const emailPromise = await super.sendEmailOTP(email, code);
-    if (emailPromise) {
-      const hashCode = await super.generateHash(SALT, code);
-      return {
-        code: hashCode,
-      };
-    }
-    return null;
-  }
-
-  async verifyPatientOTP(code: string, hashCode: string) {
-    const inputCode = await super.generateHash(SALT, code);
-    if (inputCode === hashCode) {
-      return true;
     } else {
       return false;
     }

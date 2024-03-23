@@ -5,6 +5,4 @@ export const queries = `#graphql
       getPatientToken(email: String!, password: String!): PatientReturn
       patientForgotPassword(email: String, id: ID): Patient
       verifyPatientCode(code: String, id: ID):Boolean
-      patientOTP(email: String): PatientOTP
-      verifyPatientOTP(code: String, hashCode: String):Boolean
 `;

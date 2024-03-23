@@ -108,6 +108,7 @@ export default function AdminEditPatient() {
 
   const createPatient = async (data: any) => {
     const { id, ...other } = data;
+    console.log(other);
     return publicRequest
       .post("/graphql", {
         query: UPDATE_PATIENT_QUERY,

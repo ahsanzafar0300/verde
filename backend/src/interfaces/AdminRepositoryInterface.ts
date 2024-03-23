@@ -14,6 +14,7 @@ export interface Admin {
   password: string;
   phone_number: string;
   verification_code?: string;
+  verification_code_expiry?: number;
 }
 
 export interface UpdateAdmin {
@@ -23,6 +24,7 @@ export interface UpdateAdmin {
   password?: string;
   phone_number?: string;
   verification_code?: string;
+  verification_code_expiry?: number;
 }
 
 export interface GetUserTokenPayload {
@@ -31,6 +33,7 @@ export interface GetUserTokenPayload {
 }
 
 export interface ReturnUserTokenPayload {
+  id: number;
   token: string;
   email: string;
   role: string;

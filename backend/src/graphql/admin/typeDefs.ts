@@ -10,6 +10,7 @@ export const typeDefs = `#graphql
         verification_code_expiry:Int
     }
     type AdminReturn{
+        id:ID
         token:String
         email:String
         error:String

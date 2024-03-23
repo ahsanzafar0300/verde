@@ -60,18 +60,18 @@ class PatientService {
     return verificationCode;
   }
 
-  async patientOTP(email: string) {
-    const patient = await this.patients.patientOTP(email);
-    return patient;
-  }
+  // async patientOTP(email: string) {
+  //   const patient = await this.patients.patientOTP(email);
+  //   return patient;
+  // }
 
-  async verifyPatientOTP(code: string, hashCode: string) {
-    const verificationCode = await this.patients.verifyPatientOTP(
-      code,
-      hashCode
-    );
-    return verificationCode;
-  }
+  // async verifyPatientOTP(code: string, hashCode: string) {
+  //   const verificationCode = await this.patients.verifyPatientOTP(
+  //     code,
+  //     hashCode
+  //   );
+  //   return verificationCode;
+  // }
 }
 
 export default PatientService;

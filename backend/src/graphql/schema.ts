@@ -7,6 +7,7 @@ import { Payment } from "./payment";
 import { Appointment } from "./appointment";
 import { DoctorHospital } from "./doctorHospital";
 import { DoctorSpecialization } from "./doctorSpecialization";
+import { UserOtp } from "./userOtp";
 
 export const typeDefs = `#graphql
     ${Doctor.typeDefs}
@@ -18,6 +19,7 @@ export const typeDefs = `#graphql
     ${Appointment.typeDefs}
     ${DoctorHospital.typeDefs}
     ${DoctorSpecialization.typeDefs}
+    ${UserOtp.typeDefs}
     type Query{
       ${Patient.queries}
       ${Doctor.queries}
@@ -28,6 +30,7 @@ export const typeDefs = `#graphql
       ${Appointment.queries}
       ${DoctorHospital.queries}
       ${DoctorSpecialization.queries}
+      ${UserOtp.queries}
     }
     type Mutation{
         ${Patient.mutations}
@@ -39,5 +42,6 @@ export const typeDefs = `#graphql
         ${Appointment.mutations}
         ${DoctorHospital.mutations}
         ${DoctorSpecialization.mutations}
+        ${UserOtp.mutations}
     }
 `;

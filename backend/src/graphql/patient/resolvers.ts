@@ -37,15 +37,6 @@ const queries = {
   ) => {
     return patientService.verifyPatientCode(code, parseInt(id));
   },
-  patientOTP: async (_: void, { email }: { email: string }) => {
-    return patientService.patientOTP(email);
-  },
-  verifyPatientOTP: async (
-    _: void,
-    { code, hashCode }: { code: string; hashCode: string }
-  ) => {
-    return patientService.verifyPatientOTP(code, hashCode);
-  },
 };
 
 const mutations = {

@@ -1,7 +1,7 @@
 import { createHmac } from "node:crypto";
 import { mailTransporter } from "../utils/nodemailerConfig";
 import JWT from "jsonwebtoken";
-import { JWT_SECRET } from "..";
+import { JWT_SECRET, prisma } from "..";
 
 class BaseRepository {
   async generateHash(salt: string, password: string) {

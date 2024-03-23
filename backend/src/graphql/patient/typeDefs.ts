@@ -10,8 +10,14 @@ export const typeDefs = `#graphql
         is_verified: Boolean
         verification_code:String
         verification_code_expiry:Int
+        insurance_id:String,
+        age:Int,
+        weight:Int,
+        blood_group:String,
+        other_history:String
     }
     type PatientReturn{
+        id:ID
         token:String
         email:String
         error:String
@@ -38,6 +44,11 @@ export const typeDefs = `#graphql
         is_verified: Boolean
         verification_code:String
         verification_code_expiry:Int
+        insurance_id:String,
+        age:Int,
+        weight:Int,
+        blood_group:String,
+        other_history:String
     }
     type PatientOTP{
         code:String

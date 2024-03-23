@@ -12,3 +12,6 @@ export { default as Button } from "./Button";
 export { default as ContentSection } from "./ContentSection";
 export { default as GooglePlayButton } from "./GooglePlayButton";
 export { default as TimePicker } from "./TimePicker";
+export { default as Footer } from "./Footer";
+export { default as TextareaField } from "./TextareaField";
+export { default as DropdownField } from "./DropdownField";

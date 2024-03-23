@@ -7,6 +7,7 @@ export default function PhoneInputComp({
   onChange,
   properties,
   error,
+  disabled,
 }: PhoneInputProps) {
   return (
     <div className="relative">
@@ -14,6 +15,7 @@ export default function PhoneInputComp({
         defaultCountry="ng"
         value={value}
         {...properties}
+        disabled={disabled}
         onChange={onChange ? onChange : null}
         className="flex my-6 px-2.5 pt-2 pb-0.5 w-full text-sm text-primary placeholder:text-blue-600 bg-transparent rounded-lg border border-primary appearance-none focus:outline-none peer"
       />
@@ -35,4 +37,5 @@ interface PhoneInputProps {
   onChange?: (e: any) => void;
   error?: any;
   properties?: any;
+  disabled?: boolean;
 }

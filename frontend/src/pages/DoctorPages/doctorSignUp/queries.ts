@@ -15,16 +15,16 @@ findDoctorByEmail(email: $email) {
 }
 `;
 
-export const DOCTOR_SEND_OTP_QUERY = `
-query($email: String) {
-doctorOTP(email: $email) {
-  code
+export const SEND_OTP_QUERY = `
+mutation($email: String!,$role: String!) {
+createUserOtp(email: $email,role: $role) {
+  id
 }
 }
 `;
 
-export const DOCTOR_VERIFY_OTP_QUERY = `
-query ($code: String, $hashCode: String) {
-verifyDoctorOTP(code: $code, hashCode: $hashCode)
+export const VERIFY_OTP_QUERY = `
+query ($email: String!,$role: String!, $code: String!) {
+verifyUserOtp(email: $email,role: $role,code: $code)
 }
 `;

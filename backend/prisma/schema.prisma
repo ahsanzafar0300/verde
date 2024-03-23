@@ -21,6 +21,24 @@ model doctors {
   is_verified          Boolean                @default(false)
   verification_code    String                 @db.VarChar(50) @default("")
   verification_code_expiry Int   @default(0)
+  image                String     @db.VarChar(255) @default("")
+  city                 String     @db.VarChar(50)@default("")
+  country              String    @db.VarChar(50) @default("")
+  department           String    @db.VarChar(50) @default("")
+  experience           String    @db.VarChar(50) @default("")
+  registration_no      String    @db.VarChar(50) @default("")
+  qualification        String    @db.VarChar(50) @default("")
+  consultation_mode    String    @db.VarChar(50) @default("")
+  consultation_fee_regular     Float     @default(0)
+  consultation_fee_discounted  Float     @default(0)
+  booking_lead_time    String    @db.VarChar(50) @default("")
+  payout_method        String    @db.VarChar(50) @default("")
+  payout_method_id     String    @db.VarChar(50) @default("")
+  address              String    @db.VarChar(50) @default("")
+  postal_code          String    @db.VarChar(50) @default("")
+  services             String[]    @db.VarChar(50) @default([])
+  specialization       String[]    @db.VarChar(50) @default([])
+  bibliography             String    @db.VarChar(255) @default("")
   appointments         appointments[]
   doctorSpecialization doctorSpecialization[]
   doctorHospitals      doctorHospitals[]
@@ -37,6 +55,11 @@ model patients {
   is_verified  Boolean        @default(false)
   verification_code    String                 @db.VarChar(50) @default("")
   verification_code_expiry Int  @default(0)
+  age          Int            @default(0)
+  insurance_id String         @db.VarChar(50) @default("")
+  weight       Int            @default(0)
+  blood_group  String         @db.VarChar(50) @default("")
+  other_history  String       @db.VarChar(50) @default("")
   appointments appointments[]
 }
 
@@ -101,4 +124,12 @@ model doctorHospitals {
   doctor_id   Int
   hospital    hospitals @relation(fields: [hospital_id], references: [id])
   hospital_id Int
+}
+
+model userOtp {
+  id                   Int                    @id @default(autoincrement())
+  email                String                 @db.VarChar(255)
+  role         String                 @db.VarChar(50)
+  otp    String                 @db.VarChar(50) @default("")
+  otp_expiry Int   @default(0)
 }

@@ -2,7 +2,6 @@ import image from "../../../assets/form-img.png";
 import { InputField } from "../../../components";
 import { Link, useNavigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
-import { publicRequest } from "../../../api/requestMethods";
 import { useDispatch } from "react-redux";
 import { setUser } from "../../../redux/slices/userSlice";
 import { USER_ROLES } from "../../../api/roles";
@@ -12,6 +11,8 @@ import { loadingEnd, loadingStart } from "../../../redux/slices/loadingSlice";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { getDoctorToken } from "../../../api/apiCalls/doctorsApi";
+import { DOCTOR_TOKEN_QUERY } from "./queries";
 
 const inputs = [
   {
@@ -28,16 +29,6 @@ const inputs = [
   },
 ];
 
-const DOCTOR_QUERY = `
-query DoctorToken($email: String!, $password: String!) {
-  getDoctorToken(email: $email, password: $password){
-    token,
-    email,
-    error
-  }
-}
-`;
-
 const FormSchema = z.object({
   email: z.string().min(1, { message: "Email is required" }).email(),
   password: z.string().min(1, { message: "Password is required" }),
@@ -53,24 +44,16 @@ export default function DoctorSignIn() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const getDoctorToken = async (data: Inputs) => {
-    const response = await publicRequest.post("/graphql", {
-      query: DOCTOR_QUERY,
-      variables: data,
-    });
-    return response.data.data.getDoctorToken;
-  };
-
   const handleLogin = async (data: Inputs) => {
     dispatch(loadingStart());
-    const tokenRes = await getDoctorToken(data);
+    const tokenRes = await getDoctorToken(DOCTOR_TOKEN_QUERY, data);
     dispatch(loadingEnd());
     if (tokenRes?.token) {
       const userData = { ...tokenRes, role: USER_ROLES.doctor };
       dispatch(setUser(userData));
       notifySuccess("Login Success! Redirecting...");
       setTimeout(() => {
-        navigate("/doctor-dashboard");
+        navigate("/doctor-dashboard/profile");
       }, 1000);
     } else {
       notifyFailure(tokenRes?.error || "Login Failed!");
@@ -87,14 +70,17 @@ export default function DoctorSignIn() {
 
   return (
     <main className="grid grid-cols-12 items-center my-12">
-      <section className="col-start-3 col-span-4">
-        <img src={image} alt="Doctors Image" className="w-full" />
-      </section>
-      <section className="col-span-5">
-        <div className="mx-8 w-4/5 justify-self-center border border-primary rounded-lg">
-          <h3 className="text-2xl text-primary font-bold my-3 border-b border-primary pt-2 pb-4 px-5">
-            Not a Doctor?
-          </h3>
+      <section className="col-start-3 col-span-5">
+        <div className="mx-8 w-4/5 justify-self-center rounded-lg">
+          <div className=" text-primary my-3 pt-2 pb-4 px-5 flex justify-between items-center">
+            <h3 className="text-3xl font-bold">Doctor Login</h3>
+            <small className="font-medium">
+              Not a Doctor?{" "}
+              <Link to="/patient/sign-in" className="font-bold">
+                Sign In
+              </Link>
+            </small>
+          </div>
           <form onSubmit={handleSubmit(onSubmit)} className="pt-2 pb-6 px-5">
             {inputs?.map((input) => (
               <InputField
@@ -138,6 +124,9 @@ export default function DoctorSignIn() {
             </small>
           </form>
         </div>
+      </section>
+      <section className="col-span-4">
+        <img src={image} alt="Doctors Image" className="w-full" />
       </section>
       <Toaster />
     </main>

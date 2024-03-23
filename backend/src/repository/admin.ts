@@ -68,6 +68,7 @@ class AdminRepository
       expiresIn: "1h",
     });
     const returnValue = {
+      id: user.id,
       token: token,
       email: email,
       role: USER_ROLES.admin,
@@ -85,18 +86,31 @@ class AdminRepository
   }
 
   async adminForgotPassword(email: string, id: number) {
-    const code = generateVerificationCode();
-    const emailPromise = await super.sendEmailOnForgotPassword(email, code);
-    if (emailPromise) {
-      return this.updateAdmin(id, { verification_code: code });
+    try {
+      const code = generateVerificationCode();
+      const currentTime = Math.floor(new Date().getTime() / 1000);
+      const otpExpiryTime = currentTime + 5 * 60;
+      const res = await this.updateAdmin(id, {
+        verification_code: code,
+        verification_code_expiry: otpExpiryTime,
+      });
+      const emailPromise = await super.sendEmailOnForgotPassword(email, code);
+      return res;
+    } catch (error) {
+      return null;
     }
-    return null;
   }
 
   async verifyAdminCode(code: string, id: number) {
     const admin = await this.findAdminById(id);
-    if (code === admin?.verification_code) {
-      return true;
+    const currentTime = Math.floor(new Date().getTime() / 1000);
+    const expiry = admin?.verification_code_expiry;
+    if (expiry! > currentTime) {
+      if (code === admin?.verification_code) {
+        return true;
+      } else {
+        return false;
+      }
     } else {
       return false;
     }

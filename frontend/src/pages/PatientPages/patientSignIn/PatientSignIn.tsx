@@ -1,25 +1,19 @@
 import image from "../../../assets/sign-in.png";
-import {
-  FacebookButton,
-  GoogleButton,
-  InputField,
-} from "../../../components/index.js";
+import { FacebookButton, GoogleButton, InputField } from "../../../components";
 import { Link, useNavigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
-import { googleSignIn, facebookSignIn } from "../../../firebase/utils.js";
-import { publicRequest } from "../../../api/requestMethods.js";
+import { googleSignIn, facebookSignIn } from "../../../firebase/utils";
 import { useDispatch } from "react-redux";
-import { setUser } from "../../../redux/slices/userSlice.js";
-import { USER_ROLES } from "../../../api/roles.js";
-import { notifyFailure, notifySuccess } from "../../../utils/Utils.js";
-import { users } from "../../CommonPages/forgotPassword/queriesAndUtils.js";
-import {
-  loadingEnd,
-  loadingStart,
-} from "../../../redux/slices/loadingSlice.js";
+import { setUser } from "../../../redux/slices/userSlice";
+import { USER_ROLES } from "../../../api/roles";
+import { notifyFailure, notifySuccess } from "../../../utils/Utils";
+import { users } from "../../CommonPages/forgotPassword/queriesAndUtils";
+import { loadingEnd, loadingStart } from "../../../redux/slices/loadingSlice";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { getPatientToken } from "../../../api/apiCalls/patientsApi";
+import { PATIENT_TOKEN_QUERY } from "./queries";
 
 const inputs = [
   {
@@ -36,16 +30,6 @@ const inputs = [
   },
 ];
 
-const PATIENT_QUERY = `
-query PatientToken($email: String!, $password: String!) {
-  getPatientToken(email: $email, password: $password){
-    token,
-    email,
-    error
-  }
-}
-`;
-
 const FormSchema = z.object({
   email: z.string().min(1, { message: "Email is required" }).email(),
   password: z.string().min(1, { message: "Password is required" }),
@@ -61,17 +45,9 @@ export default function PatientSignIn() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const getPatientToken = async (data: Inputs) => {
-    const response = await publicRequest.post("/graphql", {
-      query: PATIENT_QUERY,
-      variables: data,
-    });
-    return response.data.data.getPatientToken;
-  };
-
   const handleLogin = async (data: Inputs) => {
     dispatch(loadingStart());
-    const tokenRes = await getPatientToken(data);
+    const tokenRes = await getPatientToken(PATIENT_TOKEN_QUERY, data);
     dispatch(loadingEnd());
     if (tokenRes?.token) {
       const userData = { ...tokenRes, role: USER_ROLES.patient };
@@ -125,7 +101,15 @@ export default function PatientSignIn() {
       <section className="col-start-3 col-span-4">
         <div className="w-11/12 justify-self-center">
           <form onSubmit={handleSubmit(onSubmit)}>
-            <h3 className="text-4xl text-primary font-bold my-3">Log In</h3>
+            <div className="text-primary my-3 flex justify-between items-center">
+              <h3 className="text-3xl font-bold">Log In</h3>
+              <small className="font-medium">
+                Are you a Doctor?{" "}
+                <Link to="/doctor/sign-in" className="font-bold">
+                  Sign In
+                </Link>
+              </small>
+            </div>
             {inputs?.map((input) => (
               <InputField
                 label={input.label}

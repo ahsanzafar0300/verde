@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { InputField } from "../../../components";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   forgotPassword,
   getAdminByEmail,
@@ -12,9 +12,20 @@ import { notifyFailure, notifySuccess } from "../../../utils/Utils";
 import { Toaster } from "react-hot-toast";
 import { loadingEnd, loadingStart } from "../../../redux/slices/loadingSlice";
 import { useDispatch } from "react-redux";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const FormSchema = z.object({
+  email: z.string().min(1, { message: "Email is required!" }).email(),
+});
 
 const ForgotPasswordEmail = () => {
-  const [email, setEmail] = useState("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({ resolver: zodResolver(FormSchema) });
   const { state } = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -24,10 +35,6 @@ const ForgotPasswordEmail = () => {
       navigate(-1);
     }
   }, [state?.for]);
-
-  const handleChange = (e: any) => {
-    setEmail(e.target.value);
-  };
 
   const sendEmail = async (email: string, id: number) => {
     const res = await forgotPassword(email, id, state?.for);
@@ -43,30 +50,29 @@ const ForgotPasswordEmail = () => {
     }
   };
 
-  const handleSubmit = async (e: any) => {
-    e.preventDefault();
-    if (email?.length > 0) {
+  const onSubmit = async (data: any) => {
+    if (data?.email?.length > 0) {
       dispatch(loadingStart());
       if (state?.for === users.patient) {
-        const res = await getPatientByEmail(email);
+        const res = await getPatientByEmail(data?.email);
         if (res?.id) {
-          sendEmail(email, parseInt(res.id));
+          sendEmail(data?.email, parseInt(res.id));
         } else {
           dispatch(loadingEnd());
           notifyFailure("This email does not exist!");
         }
       } else if (state?.for === users.doctor) {
-        const res = await getDoctorByEmail(email);
+        const res = await getDoctorByEmail(data?.email);
         if (res?.id) {
-          sendEmail(email, parseInt(res.id));
+          sendEmail(data?.email, parseInt(res.id));
         } else {
           dispatch(loadingEnd());
           notifyFailure("This email does not exist!");
         }
       } else if (state?.for === users.admin) {
-        const res = await getAdminByEmail(email);
+        const res = await getAdminByEmail(data?.email);
         if (res?.id) {
-          sendEmail(email, parseInt(res.id));
+          sendEmail(data?.email, parseInt(res.id));
         } else {
           dispatch(loadingEnd());
           notifyFailure("This email does not exist!");
@@ -86,13 +92,13 @@ const ForgotPasswordEmail = () => {
             information sent to{" "}
           </small>
         </div>
-        <form onSubmit={handleSubmit} className="pt-2 pb-6 px-5">
+        <form onSubmit={handleSubmit(onSubmit)} className="pt-2 pb-6 px-5">
           <InputField
             label="Email Address"
             name="email"
             type="email"
-            value={email}
-            onChange={handleChange}
+            properties={{ ...register("email") }}
+            error={errors["email"]}
           />
           <button className="form-btn my-3">Send Email</button>
           <Link to="/">

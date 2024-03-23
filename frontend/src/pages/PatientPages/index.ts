@@ -1,6 +1,6 @@
 export { default as PatientSignIn } from "./patientSignIn/PatientSignIn";
 export { default as PatientSignUp } from "./patientSignUp/PatientSignUp";
-export { default as PatientProfile } from "./patientDashboard/PatientProfile";
+export { default as PatientProfile } from "./patientDashboard/patientProfile/PatientProfile";
 export { default as FindDoctor } from "./patientDashboard/findDoctor/FindDoctor";
 export { default as FindDoctorAppointment } from "./patientDashboard/findDoctor/FindDoctorAppointment";
 export { default as FindDoctorProfile } from "./patientDashboard/findDoctor/FindDoctorProfile";

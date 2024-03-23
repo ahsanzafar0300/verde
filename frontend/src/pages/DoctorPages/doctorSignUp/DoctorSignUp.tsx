@@ -1,6 +1,7 @@
 import image from "../../../assets/form-img.png";
 import { useState, useEffect } from "react";
 import {
+  Button,
   InputField,
   Modal,
   PhoneInputComp,
@@ -9,7 +10,6 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "react-query";
 import { Toaster } from "react-hot-toast";
-import { publicRequest } from "../../../api/requestMethods";
 import {
   isPhoneValid,
   notifyFailure,
@@ -18,15 +18,21 @@ import {
 import { useDispatch } from "react-redux";
 import { loadingEnd, loadingStart } from "../../../redux/slices/loadingSlice";
 import {
-  DOCTOR_SEND_OTP_QUERY,
-  DOCTOR_VERIFY_OTP_QUERY,
   EXISTING_DOCTOR_QUERY,
   NEW_DOCTOR_QUERY,
+  SEND_OTP_QUERY,
+  VERIFY_OTP_QUERY,
 } from "./queries";
 import OTPInput from "react-otp-input";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  checkDoctorEmail,
+  createDoctor,
+  sendDoctorOTP,
+  verifyDoctorOTP,
+} from "../../../api/apiCalls/doctorsApi";
 
 const inputs = [
   {
@@ -105,6 +111,13 @@ const UserSchema = z
     path: ["phone_number"],
   });
 
+const OtpSchema = z.object({
+  otp: z
+    .string()
+    .min(1, { message: "Otp is required!" })
+    .length(6, { message: "Enter all six digits!" }),
+});
+
 export default function DoctorSignUp() {
   const {
     register,
@@ -114,67 +127,73 @@ export default function DoctorSignUp() {
     reset,
     formState: { errors },
   } = useForm({ resolver: zodResolver(UserSchema) });
+  const {
+    formState: { errors: errorsModal },
+    handleSubmit: handleSubmitModal,
+    getValues: getValuesModal,
+    control,
+  } = useForm({
+    resolver: zodResolver(OtpSchema),
+  });
   const [showOTPModal, setShowOTPModal] = useState(false);
-  const [otp, setOtp] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const createDoctor = async (data: any) => {
-    return publicRequest
-      .post("/graphql", {
-        query: NEW_DOCTOR_QUERY,
-        variables: { data },
-      })
-      .then((response) => response.data.data.createDoctor);
+  const createNewDoctor = async (data: any) => {
+    return createDoctor(NEW_DOCTOR_QUERY, { data });
   };
 
-  const checkDoctorEmail = async () => {
-    return publicRequest
-      .post("/graphql", {
-        query: EXISTING_DOCTOR_QUERY,
-        variables: { email: getValues("email") },
-      })
-      .then((response) => response.data.data.findDoctorByEmail);
+  const checkDuplicateEmail = async () => {
+    return checkDoctorEmail(EXISTING_DOCTOR_QUERY, {
+      email: getValues("email"),
+    });
   };
 
-  const sendDoctorOTP = async () => {
-    return publicRequest
-      .post("/graphql", {
-        query: DOCTOR_SEND_OTP_QUERY,
-        variables: { email: getValues("email") },
-      })
-      .then((response) => response.data.data.doctorOTP);
+  const sendOTP = async () => {
+    return sendDoctorOTP(SEND_OTP_QUERY, {
+      email: getValues("email"),
+      role: "doctor",
+    });
   };
 
   const doctorOTPData = useQuery({
-    queryFn: sendDoctorOTP,
+    queryFn: sendOTP,
     enabled: false,
   });
 
-  const verifyDoctorOTP = async () => {
-    return publicRequest
-      .post("/graphql", {
-        query: DOCTOR_VERIFY_OTP_QUERY,
-        variables: { code: otp, hashCode: doctorOTPData.data.code },
-      })
-      .then((response) => response.data.data.verifyDoctorOTP);
+  const verifyOTP = async () => {
+    return verifyDoctorOTP(VERIFY_OTP_QUERY, {
+      email: getValues("email"),
+      role: "doctor",
+      code: getValuesModal("otp"),
+    });
   };
 
-  const { mutate, data } = useMutation(createDoctor);
+  const { mutate, data } = useMutation(createNewDoctor);
 
   const doctorEmail = useQuery({
-    queryFn: checkDoctorEmail,
+    queryFn: checkDuplicateEmail,
     enabled: false,
   });
 
   const verifyOTPData = useQuery({
-    queryFn: verifyDoctorOTP,
+    queryFn: verifyOTP,
     enabled: false,
   });
 
   const handleLogin = () => {
     dispatch(loadingStart());
     mutate(getValues());
+  };
+
+  const sendOtp = async () => {
+    dispatch(loadingStart());
+    const otp = await doctorOTPData.refetch();
+    if (otp?.data?.id) {
+      notifySuccess("OTP is sent to your email. Please Verify!");
+      setShowOTPModal(true);
+    }
+    dispatch(loadingEnd());
   };
 
   const onSubmit = async () => {
@@ -186,14 +205,10 @@ export default function DoctorSignUp() {
         { message: "Email Already Exists!" },
         { shouldFocus: true }
       );
+      dispatch(loadingEnd());
     } else {
-      const otp = await doctorOTPData.refetch();
-      if (otp?.data?.code) {
-        notifySuccess("OTP is sent to your email. Please Verify!");
-        setShowOTPModal(true);
-      }
+      await sendOtp();
     }
-    dispatch(loadingEnd());
   };
 
   useEffect(() => {
@@ -211,35 +226,33 @@ export default function DoctorSignUp() {
     }
   }, [data]);
 
-  const handleOTPSubmit = async (e: any) => {
-    e.preventDefault();
-    if (otp?.length === 6) {
-      dispatch(loadingStart());
-      const verify = await verifyOTPData.refetch();
-      dispatch(loadingEnd());
-      if (verify?.data) {
-        notifySuccess("OTP Verified!");
-        setOtp("");
-        setShowOTPModal(false);
-        handleLogin();
-      } else {
-        notifyFailure("OTP could not be verified!");
-      }
+  const handleOTPSubmit = async () => {
+    dispatch(loadingStart());
+    const verify = await verifyOTPData.refetch();
+    dispatch(loadingEnd());
+    console.log(verify?.data);
+    if (verify?.data) {
+      notifySuccess("OTP Verified!");
+      setShowOTPModal(false);
+      handleLogin();
     } else {
-      notifyFailure("Please enter the full OTP!");
+      notifyFailure("OTP could not be verified!");
     }
   };
 
   return (
-    <main className="grid grid-cols-12 items-center my-12">
-      <section className="col-start-3 col-span-4">
-        <img src={image} alt="Doctors Image" className="w-full" />
-      </section>
-      <section className="col-span-6">
-        <div className="mx-8 w-4/5 justify-self-center border border-primary rounded-lg">
-          <h3 className="text-2xl text-primary font-bold my-3 border-b border-primary pt-2 pb-4 px-5">
-            Not a Doctor?
-          </h3>
+    <main className="grid grid-cols-12 items-center my-8">
+      <section className="col-start-2 col-span-6">
+        <div className="mx-8 w-4/5 justify-self-center rounded-lg">
+          <div className=" text-primary my-3 pt-2 pb-4 px-5 flex justify-between items-center">
+            <h3 className="text-3xl font-bold">Create Account</h3>
+            <small className="font-medium">
+              Not a Doctor?{" "}
+              <Link to="/patient/sign-up" className="font-bold">
+                Sign Up
+              </Link>
+            </small>
+          </div>
           <form onSubmit={handleSubmit(onSubmit)} className="pt-2 pb-6 px-5">
             <div className="grid grid-cols-12 gap-x-4 gap-y-0">
               {inputs?.map((input) => (
@@ -304,33 +317,58 @@ export default function DoctorSignUp() {
           </form>
         </div>
       </section>
+      <section className="col-span-4">
+        <img src={image} alt="Doctors Image" className="w-full" />
+      </section>
       <Toaster />
       <Modal
         title="Verify OTP"
         showModal={showOTPModal}
         setModal={setShowOTPModal}
       >
-        <form className="space-y-4" onSubmit={handleOTPSubmit}>
-          <p className="text-base font-medium text-primary">
+        <form
+          onSubmit={handleSubmitModal(handleOTPSubmit)}
+          className="pt-2 pb-3 px-5"
+        >
+          <p className="text-base font-medium text-primary mb-2">
             Enter OTP Received
           </p>
-          <OTPInput
-            value={otp}
-            onChange={setOtp}
-            numInputs={6}
-            renderSeparator={<span>-</span>}
-            containerStyle={{ gap: "10px" }}
-            inputStyle={{
-              flex: 1,
-              border: "1px solid #ddd",
-              padding: "10px 0",
-              borderRadius: "7px",
-            }}
-            renderInput={(props) => <input {...props} />}
+          <Controller
+            name="otp"
+            control={control}
+            defaultValue=""
+            render={({ field }) => (
+              <OTPInput
+                {...field}
+                numInputs={6}
+                renderSeparator={<span>-</span>}
+                containerStyle={{ gap: "10px" }}
+                inputStyle={{
+                  flex: 1,
+                  border: "1px solid #ddd",
+                  padding: "10px 0",
+                  borderRadius: "7px",
+                }}
+                renderInput={(props) => <input {...props} />}
+              />
+            )}
           />
-          <button type="submit" className="form-btn mt-2">
-            Verify OTP
-          </button>
+          {errorsModal["otp"] && (
+            <small className="text-red-500 font-medium uppercase">
+              {typeof errorsModal["otp"].message === "string" &&
+                errorsModal["otp"].message}
+            </small>
+          )}
+          <Button title="Verify Code" className="mt-4" />
+          <Button
+            title="Send Code Again"
+            className="mt-2"
+            type="button"
+            onClick={sendOtp}
+          />
+          <small className="text-primary font-bold uppercase mt-4 block text-center">
+            OTP will expire after 5 minutes!
+          </small>
         </form>
       </Modal>
     </main>

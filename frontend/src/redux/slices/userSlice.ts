@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   currentUser: {
+    id: null,
     token: null,
     email: null,
     role: null,
@@ -17,6 +18,7 @@ export const userSlice = createSlice({
     },
     flushUser: (state) => {
       state.currentUser = {
+        id: null,
         token: null,
         email: null,
         role: null,

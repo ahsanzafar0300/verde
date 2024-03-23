@@ -35,7 +35,7 @@ export default function Navbar() {
         </Link>
         {location.pathname === "/" && (
           <div className="gap-3 items-center hidden lg:flex">
-            <Link to="/doctor/sign-in">Doctors</Link>
+            <Link to="#">Doctors</Link>
             <Link to="#">Video Consult</Link>
             <Link to="#">Medicines</Link>
             <Link to="#">Lab Test</Link>

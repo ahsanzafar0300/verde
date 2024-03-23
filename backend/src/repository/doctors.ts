@@ -76,6 +76,7 @@ class DoctorsRepository
       { expiresIn: "1h" }
     );
     const returnValue = {
+      id: user.id,
       token: token,
       email: email,
       role: USER_ROLES.doctor,
@@ -146,18 +147,31 @@ class DoctorsRepository
   }
 
   async doctorForgotPassword(email: string, id: number) {
-    const code = generateVerificationCode();
-    const emailPromise = await super.sendEmailOnForgotPassword(email, code);
-    if (emailPromise) {
-      return this.updateDoctor(id, { verification_code: code });
+    try {
+      const code = generateVerificationCode();
+      const currentTime = Math.floor(new Date().getTime() / 1000);
+      const otpExpiryTime = currentTime + 5 * 60;
+      const res = await this.updateDoctor(id, {
+        verification_code: code,
+        verification_code_expiry: otpExpiryTime,
+      });
+      const emailPromise = await super.sendEmailOnForgotPassword(email, code);
+      return res;
+    } catch (error) {
+      return null;
     }
-    return null;
   }
 
   async verifyDoctorCode(code: string, id: number) {
     const doctor = await this.findDoctorById(id);
-    if (code === doctor?.verification_code) {
-      return true;
+    const currentTime = Math.floor(new Date().getTime() / 1000);
+    const expiry = doctor?.verification_code_expiry;
+    if (expiry! > currentTime) {
+      if (code === doctor?.verification_code) {
+        return true;
+      } else {
+        return false;
+      }
     } else {
       return false;
     }
@@ -171,27 +185,6 @@ class DoctorsRepository
       },
       data: { password: hashPassword },
     });
-  }
-
-  async doctorOTP(email: string) {
-    const code = generateVerificationCode();
-    const emailPromise = await super.sendEmailOTP(email, code);
-    if (emailPromise) {
-      const hashCode = await super.generateHash(SALT, code);
-      return {
-        code: hashCode,
-      };
-    }
-    return null;
-  }
-
-  async verifyDoctorOTP(code: string, hashCode: string) {
-    const inputCode = await super.generateHash(SALT, code);
-    if (inputCode === hashCode) {
-      return true;
-    } else {
-      return false;
-    }
   }
 }
 

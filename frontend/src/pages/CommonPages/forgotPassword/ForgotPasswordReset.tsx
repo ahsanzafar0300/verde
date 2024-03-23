@@ -1,19 +1,44 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { InputField } from "../../../components";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { updatePassword, users } from "./queriesAndUtils";
-import {
-  isValidPassword,
-  notifyFailure,
-  notifySuccess,
-} from "../../../utils/Utils";
+import { notifyFailure, notifySuccess } from "../../../utils/Utils";
 import { Toaster } from "react-hot-toast";
 import { loadingEnd, loadingStart } from "../../../redux/slices/loadingSlice";
 import { useDispatch } from "react-redux";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const FormSchema = z
+  .object({
+    password: z
+      .string()
+      .min(1, { message: "Password is required" })
+      .min(9, { message: "Password is too short" })
+      .regex(/[A-Z]/, { message: "Please include an uppercase letter" })
+      .regex(/[a-z]/, { message: "Please include a lowercase letter" })
+      .regex(/\d/, {
+        message: "Please include atleast one number",
+      })
+      .regex(/[^a-zA-Z0-9]/, {
+        message: "Please include atleast one special character",
+      }),
+    confirmPassword: z
+      .string()
+      .min(1, { message: "Confirm Password is required" }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match!",
+    path: ["confirmPassword"],
+  });
 
 const ForgotPasswordReset = () => {
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({ resolver: zodResolver(FormSchema) });
   const { state } = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -34,32 +59,19 @@ const ForgotPasswordReset = () => {
     }
   };
 
-  const handleSubmit = async (e: any) => {
-    e.preventDefault();
-    if (password?.length > 0 && confirmPassword?.length > 0) {
-      if (password === confirmPassword) {
-        if (isValidPassword(password)?.status) {
-          dispatch(loadingStart());
-          const res = await updatePassword(
-            state?.id.toString(),
-            state?.for,
-            password
-          );
-          dispatch(loadingEnd());
-          if (res?.id) {
-            notifySuccess("Password Changed Successfully!");
-            setTimeout(() => handleNavigate(), 1000);
-          } else {
-            notifyFailure("Password Change Unsuccessful!");
-          }
-        } else {
-          notifyFailure(isValidPassword(password)?.msg);
-        }
-      } else {
-        notifyFailure("Password and confirm password fields do not match!");
-      }
+  const onSubmit = async (data: any) => {
+    dispatch(loadingStart());
+    const res = await updatePassword(
+      state?.id.toString(),
+      state?.for,
+      data?.password
+    );
+    dispatch(loadingEnd());
+    if (res?.id) {
+      notifySuccess("Password Changed Successfully!");
+      setTimeout(() => handleNavigate(), 1000);
     } else {
-      notifyFailure("Please fill all fields!");
+      notifyFailure("Password Change Unsuccessful!");
     }
   };
   return (
@@ -72,20 +84,20 @@ const ForgotPasswordReset = () => {
             information sent to{" "}
           </small>
         </div>
-        <form onSubmit={handleSubmit} className="pt-2 pb-6 px-5">
+        <form onSubmit={handleSubmit(onSubmit)} className="pt-2 pb-6 px-5">
           <InputField
             label="New Password"
             name="password"
             type="password"
-            value={password}
-            onChange={(e: any) => setPassword(e.target.value)}
+            properties={{ ...register("password") }}
+            error={errors["password"]}
           />
           <InputField
             label="Confirm Password"
             name="confirmPassword"
             type="password"
-            value={confirmPassword}
-            onChange={(e: any) => setConfirmPassword(e.target.value)}
+            properties={{ ...register("confirmPassword") }}
+            error={errors["confirmPassword"]}
           />
           <div className="mb-5">
             <small className="text-primary">
